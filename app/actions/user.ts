@@ -8,11 +8,10 @@ export async function doSignUp(
   formData: FormData
 ): Promise<Result<null>> {
   try {
-    const username = formData.get("username") as string;
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    const validation = signUpSchema.safeParse({ username, email, password });
+    const validation = signUpSchema.safeParse({ email, password });
     if (!validation.success) {
       const errors: ValidationError[] = Object.entries(
         validation.error.flatten().fieldErrors
@@ -25,23 +24,20 @@ export async function doSignUp(
     const existingUser = await fetchUserByEmail(email);
     if (existingUser) {
       const error = { field: "email", message: "Email is already in use." };
-      console.error("User already exists:", error);
       return { success: false, errors: [error] };
     }
 
     // Pass the *plain* password to createUser
-    const user: DbUser | null = await createUser(email, password);
-    if (!user) {
+    const creationResult: Result<DbUser> = await createUser(email, password);
+    if (!creationResult.success) {
       return {
         success: false,
-        errors: [{ field: "general", message: "Failed to create user." }],
+        errors: creationResult.errors,
       };
     }
 
-    console.log("User created successfully");
     return { success: true, data: null };
   } catch (error) {
-    console.error("Caught exception in doSignUp:", error);
     let message = "An unexpected error occurred during signup.";
     if (error instanceof Error) {
       message = error.message;
