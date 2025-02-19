@@ -14,14 +14,14 @@ export async function fetchUserByEmail(email: string): Promise<DbUser | null> {
     });
 
     if (user) {
-      console.log(`Fetched user with email ${email}:`, user);
+      console.log(`Fetched user with email`);
     } else {
-      console.warn(`No user found with email ${email}`);
+      console.warn(`No user found with email`);
     }
 
     return user;
   } catch (error) {
-    console.error(`Error fetching user with email ${email}:`, error);
+    console.error(`Error fetching user with email:`, error);
     throw new Error("Failed to fetch user");
   }
 }
@@ -36,7 +36,7 @@ export async function createUser(
         email,
         password,
       });
-      return null; // Return null instead of throwing
+      return null;
     }
 
     const existingUser = await prisma.user.findFirst({

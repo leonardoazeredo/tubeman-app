@@ -12,8 +12,6 @@ export async function doSignUp(
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
-    console.log("Received sign-up data:", { username, email, password });
-
     const validation = signUpSchema.safeParse({ username, email, password });
     if (!validation.success) {
       const errors: ValidationError[] = Object.entries(
