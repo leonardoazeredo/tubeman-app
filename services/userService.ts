@@ -40,9 +40,7 @@ export async function createUser(
     }
 
     const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email }],
-      },
+      where: { email },
     });
 
     if (existingUser) {

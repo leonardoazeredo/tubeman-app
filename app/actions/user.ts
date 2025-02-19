@@ -1,4 +1,6 @@
 import { createUser, fetchUserByEmail } from "@/services/userService";
+import { DbUser } from "@/types/db";
+import { Result, ValidationError } from "@/types/shared";
 import { signUpSchema } from "@/utils/zodSchemas";
 
 export async function doSignUp(
@@ -14,8 +16,11 @@ export async function doSignUp(
 
     const validation = signUpSchema.safeParse({ username, email, password });
     if (!validation.success) {
-      const errors = validation.error.flatten().fieldErrors;
-      console.error("Validation errors:", errors);
+      const errors: ValidationError[] = Object.entries(
+        validation.error.flatten().fieldErrors
+      ).flatMap(([field, messages]) =>
+        messages.map((message) => ({ field, message }))
+      );
       return { success: false, errors };
     }
 
@@ -27,7 +32,7 @@ export async function doSignUp(
     }
 
     // Pass the *plain* password to createUser
-    const user = await createUser(email, password);
+    const user: DbUser | null = await createUser(email, password);
     if (!user) {
       return {
         success: false,
@@ -35,7 +40,7 @@ export async function doSignUp(
       };
     }
 
-    console.log("User created successfully:", { username, email });
+    console.log("User created successfully");
     return { success: true, data: null };
   } catch (error) {
     console.error("Caught exception in doSignUp:", error);
