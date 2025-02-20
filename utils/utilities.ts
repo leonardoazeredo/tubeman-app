@@ -2,7 +2,7 @@ import { fetchUserByEmail } from "@/services/userService";
 import { DbUser } from "@/types/db";
 import { ValidationError } from "@/types/shared";
 import bcrypt from "bcryptjs";
-import { ZodIssue } from "zod";
+import { ZodIssue, ZodObject } from "zod";
 
 export async function validateUser(email: string): Promise<DbUser | null> {
   const user = await fetchUserByEmail(email);
@@ -32,4 +32,19 @@ export const mapZodErrors = (zodErrors: ZodIssue[]): ValidationError[] => {
     field: error.path.join("."),
     message: error.message,
   }));
+};
+
+// Reusable validateField function
+export const validateField = <Schema extends ZodObject<any>>(
+  schema: Schema,
+  fieldName: string,
+  value: string,
+  allValues: Record<string, string> // Pass all form values for context-dependent validation if needed
+): string | undefined => {
+  const result = schema.safeParse({ ...allValues, [fieldName]: value }); // Merge field value with all values for validation context
+  if (!result.success) {
+    const fieldError = result.error.formErrors.fieldErrors[fieldName]?.[0];
+    return fieldError;
+  }
+  return undefined; // No error
 };
