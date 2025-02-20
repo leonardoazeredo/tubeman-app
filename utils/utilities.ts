@@ -1,6 +1,8 @@
 import { fetchUserByEmail } from "@/services/userService";
 import { DbUser } from "@/types/db";
+import { ValidationError } from "@/types/shared";
 import bcrypt from "bcryptjs";
+import { ZodIssue } from "zod";
 
 export async function validateUser(email: string): Promise<DbUser | null> {
   const user = await fetchUserByEmail(email);
@@ -24,3 +26,10 @@ export async function validatePassword(
 export async function hashPassword(password: string): Promise<string> {
   return await bcrypt.hash(password, 12);
 }
+
+export const mapZodErrors = (zodErrors: ZodIssue[]): ValidationError[] => {
+  return zodErrors.map((error) => ({
+    field: error.path.join("."),
+    message: error.message,
+  }));
+};

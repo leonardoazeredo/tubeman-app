@@ -27,7 +27,7 @@ export async function fetchUserByEmail(email: string): Promise<DbUser | null> {
       error
     );
     if (error.message === "Invalid email") {
-      throw new Error("Invalid email"); // Specifically throw "Invalid email"
+      throw new Error("Invalid email");
     } else if (
       error.code === "ECONNREFUSED" ||
       error.code === "P2003" ||
