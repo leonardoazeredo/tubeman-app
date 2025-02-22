@@ -30,10 +30,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         if (!user || !(await validatePassword(password, user.password))) {
 
+          console.log("User failed to login");
           return null;
         }
 
-
+        console.log("User logedin with success");
         return user;
       },
     }),

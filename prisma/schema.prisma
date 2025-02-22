@@ -21,5 +21,24 @@ model User {
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
+  collections Collection[]
+
   @@index([email])
+}
+
+model Collection {
+  id     String @id @default(uuid()) @db.Uuid
+  name   String @db.VarChar(255)
+  userId String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  channelId String @db.VarChar(255) // YouTube Channel ID
+
+  keywords String[] // Keywords for filtering videos
+
+  videos Json[] // Array of video objects (title, url, thumbnailUrl, description, publishedAt)
+
+  createdAt DateTime @default(now()) @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @db.Timestamptz(6)
 }
