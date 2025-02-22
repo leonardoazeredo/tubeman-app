@@ -1,14 +1,14 @@
 import { prisma } from "@/utils/prisma";
 import { Result } from "@/types/shared";
-import { Collection } from "@prisma/client";
 import { InputJsonValue } from "@prisma/client/runtime/client";
+import { DbCollection } from "@/types/db";
 
 export async function createCollection(
   userId: string,
   name: string,
   channelId: string,
   keywords: string[]
-): Promise<Result<Collection>> {
+): Promise<Result<DbCollection>> {
   try {
     const newCollection = await prisma.collection.create({
       data: {
@@ -32,7 +32,7 @@ export async function createCollection(
 
 export async function getCollectionById(
   collectionId: string
-): Promise<Result<Collection>> {
+): Promise<Result<DbCollection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { id: collectionId },
@@ -53,7 +53,7 @@ export async function getCollectionById(
 
 export async function getCollectionByUserId(
   userId: string
-): Promise<Result<Collection>> {
+): Promise<Result<DbCollection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { userId: userId },
@@ -77,7 +77,7 @@ export async function updateCollection(
   name?: string,
   keywords?: string[],
   videos?: InputJsonValue[]
-): Promise<Result<Collection>> {
+): Promise<Result<DbCollection>> {
   try {
     const collection = await prisma.collection.update({
       where: { id: collectionId },
@@ -97,7 +97,7 @@ export async function updateCollection(
 
 export async function deleteCollection(
   collectionId: string
-): Promise<Result<Collection>> {
+): Promise<Result<DbCollection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { id: collectionId },

@@ -7,12 +7,15 @@ import { signInSchema } from "@/utils/zodSchemas";
 import { ValidationError } from "@/types/shared";
 import Input from "./shared/input";
 import useDebounce from "@/utils/customHooks";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
   const [signInResult, dispatchSignIn, isPending] = useActionState(doSignIn, {
     success: false,
     errors: [],
   });
+
+  const router = useRouter();
 
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
@@ -28,7 +31,10 @@ export default function LoginForm() {
   const debouncedValidate = useDebounce(
     (fieldName: "email" | "password", value: string) => {
       const schema = signInSchema;
-      const error = validateField(schema, fieldName, value, { email, password });
+      const error = validateField(schema, fieldName, value, {
+        email,
+        password,
+      });
       if (fieldName === "email") {
         setEmailError(error);
       } else if (fieldName === "password") {
@@ -38,7 +44,10 @@ export default function LoginForm() {
     1000
   );
 
-  const handleValidateField = (fieldName: "email" | "password", value: string) => {
+  const handleValidateField = (
+    fieldName: "email" | "password",
+    value: string
+  ) => {
     debouncedValidate(fieldName, value);
   };
 
@@ -78,8 +87,9 @@ export default function LoginForm() {
       setEmailError(undefined);
       setPasswordError(undefined);
       console.log("Sign-in successful!");
+      router.push("/collections");
     }
-  }, [signInResult]);
+  }, [signInResult, router]);
 
   return (
     <form className="mt-8 space-y-6" action={handleSubmit}>
