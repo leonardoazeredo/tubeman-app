@@ -53,7 +53,7 @@ export async function doSignUp(
 
 export async function doSignIn(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prevState: any,
+  _prevState: any,
   formData: FormData
 ): Promise<Result<null>> {
   try {
@@ -84,6 +84,7 @@ export async function doSignIn(
     }
 
     await signIn("credentials", {
+      redirect: false,
       email: validatedEmail,
       password: validatedPassword,
     });

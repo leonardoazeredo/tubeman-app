@@ -1,10 +1,10 @@
 import SignUpForm from "../../ui/signup-form";
-import AuthLayout from "../../ui/layouts/auth-layout"; // Import AuthLayout
+import AuthPage from "../../ui/pages/auth-page"; // Import AuthLayout
 
 export default function SignUp() {
   return (
-    <AuthLayout title="Create an account">
+    <AuthPage title="Create an account">
       <SignUpForm />
-    </AuthLayout>
+    </AuthPage>
   );
 }
