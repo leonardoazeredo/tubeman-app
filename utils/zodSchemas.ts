@@ -17,3 +17,14 @@ export const signUpSchema = object({
     .min(12, "Password must be at least 12 characters long")
     .max(32, "Password must be at most 32 characters long"),
 });
+
+export const scrapeSearchParamsSchema = object({
+  channelHandle: string()
+    .nonempty("Channel handle is required.")
+    .trim()
+    .transform((value) => value.replace(/\s+/g, "").replace(/^@/, "")),
+  keywords: string()
+    .nonempty("Keywords are required.")
+    .trim()
+    .transform((value: string) => value.replace(/[\s,.;|]+/g, " ").trim()),
+});
