@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useActionState } from "react";
-import { doSignUp } from "../actions/user";
+import { doSignUp } from "../../actions/user";
 import { mapZodErrors, validateField } from "@/utils/utilities";
 import { signUpSchema } from "@/utils/zodSchemas";
 import { ValidationError } from "@/types/shared";
-import Input from "./shared/input";
+import Input from "../shared/input";
 import useDebounce from "@/utils/customHooks";
 
 export default function SignupForm() {

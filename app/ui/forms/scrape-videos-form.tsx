@@ -4,6 +4,7 @@ import { scrapeVideos } from "@/app/actions/scrape";
 import { Result, ValidationError, Video } from "@/types/shared";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
+import { VideoList } from "../videos/videos-list";
 
 export default function VideosSearchForm() {
   const [state, dispatch, pending] = useActionState<Result<Video[]>, FormData>(

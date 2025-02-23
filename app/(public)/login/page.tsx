@@ -1,4 +1,4 @@
-import LoginForm from "../../ui/login-form";
+import LoginForm from "../../ui/forms/login-form";
 import AuthPage from "../../ui/pages/auth-page"; // Import AuthLayout
 
 export default function LogIn() {
