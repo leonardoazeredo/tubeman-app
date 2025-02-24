@@ -13,8 +13,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@googleapis/youtube": "^20.0.0",
     "@prisma/client": "^6.4.0",
-    "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.2",
     "next": "15.1.7",
     "next-auth": "^5.0.0-beta.25",
@@ -28,6 +28,7 @@
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
+    "@types/bcryptjs": "^2.4.6",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.13.4",
     "@types/react": "^19.0.10",
