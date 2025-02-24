@@ -14,7 +14,8 @@ export default function VideosSearchForm() {
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
   );
-  const videos: Video[] = [];
+
+  const [videos, setVideos] = useState<Video[]>([]);
 
   const hasSearched: boolean =
     (state?.success && state.data.length > 0) || false;
@@ -52,7 +53,8 @@ export default function VideosSearchForm() {
       });
     } else if (state.success) {
       setFormError(undefined);
-      console.log("Signup successful!");
+      console.log("Got videos: ", state.data);
+      setVideos(state.data);
     }
   }, [state]);
 

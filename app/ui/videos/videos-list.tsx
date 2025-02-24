@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { Video } from "@/types/shared";
 import { createCollection } from "@/services/collectionService";
+import { useRouter } from "next/navigation";
 
 interface VideoListProps {
   videos: Video[];
@@ -25,19 +26,26 @@ export function VideoList({
     success: false,
     errors: [],
   });
+  const router = useRouter();
+
+  useEffect(() => {
+    if (state.success) {
+      console.log("Collection created successfully!", state.data);
+      // Redirect to collections page after successful creation
+      router.push("/collections");
+    } else if (!state.success && state.errors && state.errors?.length > 0) {
+      console.error("Error creating collection:", state.errors);
+      // Handle errors (e.g., display error message to the user)
+    }
+  }, [state, router]);
+
   if (!hasSearched) {
-    return (
-      <p className="text-center text-gray-600">
-        Submit the form to fetch videos.
-      </p>
-    );
+    return <p>Submit the form to fetch videos.</p>;
   }
 
   if (videos.length === 0) {
-    return <p className="text-center text-gray-600">No videos found.</p>;
+    return <p>No videos found.</p>;
   }
-
-  console.log(state);
 
   return (
     <>
@@ -46,37 +54,23 @@ export function VideoList({
         <input type="hidden" name="videos" value={JSON.stringify(videos)} />
         <input type="hidden" name="keywords" value={JSON.stringify(keywords)} />
         <input type="hidden" name="channelHandle" value={channelHandle} />
-        <div className="flex grow flex-col gap-2">
-          <label
-            htmlFor="collectionName"
-            className="text-gray-700 dark:text-gray-200"
-          >
-            Collection Name
-          </label>
+        <div>
+          <label htmlFor="collectionName">Collection Name</label>
           <input
             id="collectionName"
             name="collectionName"
             type="text"
-            className="w-full grow rounded-md border bg-blue-800 p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-500 disabled:text-white"
             placeholder="Name this Collection"
             defaultValue="Sample Name"
             disabled={pending}
             required
           />
         </div>
-        <button
-          type="submit"
-          className="mb-4 w-48 rounded-md bg-blue-600 p-2 text-white shadow hover:bg-blue-700 md:mx-auto"
-        >
-          Create Collection
-        </button>
+        <button type="submit">Create Collection</button>
       </form>
-      <div className="overview card grid gap-6 rounded-lg bg-gray-800 p-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div>
         {videos.map((video) => (
-          <div
-            key={video.id}
-            className="flex flex-col items-center overflow-hidden rounded-lg bg-gray-700 p-4 shadow-lg"
-          >
+          <div key={video.id}>
             <Link
               href={`https://www.youtube.com/watch?v=${video.id}`}
               target="_blank"
@@ -87,14 +81,10 @@ export function VideoList({
                 alt={video.title}
                 width={100}
                 height={100}
-                className="mb-1 rounded-lg shadow"
               />
             </Link>
-            <p className="text-white-800 mb-2">{video.title}</p>
-            <Link
-              href={`https://www.youtube.com/@${channelHandle}`}
-              className="mb-2 flex flex-row items-center"
-            >
+            <p>{video.title}</p>
+            <Link href={`https://www.youtube.com/@${channelHandle}`}>
               {/* <Image
                 src={video.channelAvatarUrl}
                 width={24}

@@ -4,19 +4,50 @@ import { InputJsonValue } from "@prisma/client/runtime/client";
 import { DbCollection } from "@/types/db";
 
 export async function createCollection(
-  userId: string,
-  name: string,
-  channelId: string,
-  keywords: string[]
+  _prevState: Result<DbCollection>, // Accept prevState (though we might not use it directly here)
+  formData: FormData
 ): Promise<Result<DbCollection>> {
   try {
+    const name = formData.get("collectionName")?.toString();
+    const userId = formData.get("userId")?.toString();
+    const channelHandle = formData.get("channelHandle")?.toString();
+    const keywordsString = formData.get("keywords")?.toString();
+    const videosString = formData.get("videos")?.toString();
+
+    if (
+      !userId ||
+      !name ||
+      !channelHandle ||
+      !keywordsString ||
+      !videosString
+    ) {
+      return {
+        success: false,
+        errors: [
+          { field: "general", message: "Missing required collection data." },
+        ],
+      };
+    }
+    const keywords = JSON.parse(keywordsString) as string[]; // Parse keywords from JSON string
+    const videos = JSON.parse(videosString) as InputJsonValue[]; // Parse videos from JSON string
+    const channelId = channelHandle.replace(/^@/, ""); // Remove @ if present and use as channelId
+
+    if (!Array.isArray(keywords) || !Array.isArray(videos)) {
+      return {
+        success: false,
+        errors: [
+          { field: "general", message: "Invalid keywords or videos data." },
+        ],
+      };
+    }
+
     const newCollection = await prisma.collection.create({
       data: {
         userId,
         name,
         channelId,
         keywords,
-        videos: [], // Initially empty videos array
+        videos: videos, // Use parsed videos array
       },
     });
     return { success: true, data: newCollection };
