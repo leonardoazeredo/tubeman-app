@@ -1,4 +1,3 @@
-// ../tubeman-app/app/actions/scrape.ts
 "use server";
 
 import { Result, Video } from "@/types/shared";
@@ -6,37 +5,41 @@ import { mapZodErrors } from "@/utils/utilities";
 import { scrapeSearchParamsSchema } from "@/utils/zodSchemas";
 import { youtube_v3 } from "@googleapis/youtube";
 
-// Initialize YouTube API client (outside the function for efficiency - if possible in server actions, or initialize per action call)
 const youtube = new youtube_v3.Youtube({
   auth: process.env.YOUTUBE_API_KEY,
   apiVersion: "v3",
 });
 
-async function getChannelIdFromHandle(
+async function getChannelDataFromHandle(
   channelHandle: string
-): Promise<string | null> {
+): Promise<{ channelId: string; channelAvatarUrl: string }> {
+  let channelId = "";
+  let channelAvatarUrl = "";
   try {
     const response = await youtube.channels.list({
-      part: ["id"],
-      forUsername: channelHandle, // Note: 'forUsername' uses the *handle*
+      part: ["id", "snippet"],
+      forUsername: channelHandle,
     });
 
+    console.log(JSON.stringify(response));
+
     if (response.data.items && response.data.items.length > 0) {
-      return response.data.items[0].id || null;
-    } else {
-      return null; // Channel not found for this handle
+      channelId = response.data.items[0].id ?? "";
+      channelAvatarUrl =
+        response.data.items[0].snippet?.thumbnails?.high?.url ?? "";
     }
+    return { channelId, channelAvatarUrl };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error fetching channel ID from handle:", error);
-    return null;
+    return { channelId, channelAvatarUrl };
   }
 }
 
-export async function scrapeVideos(
-  _state: Result<Video[]>,
+export async function getVideosData(
+  _state: Result<{ videos: Video[]; channelAvatarUrl: string }>,
   formData: FormData
-): Promise<Result<Video[]>> {
+): Promise<Result<{ videos: Video[]; channelAvatarUrl: string }>> {
   try {
     const channelHandle = formData.get("channelHandle")?.toString();
     const keywords = formData.get("keywords")?.toString();
@@ -64,31 +67,47 @@ export async function scrapeVideos(
 
     const { channelHandle: validHandle, keywords: validKeywords } = parsed.data;
 
-    const channelId = await getChannelIdFromHandle(validHandle);
+    const { channelId, channelAvatarUrl } = await getChannelDataFromHandle(
+      validHandle
+    );
     if (!channelId) {
       return {
         success: false,
         errors: [{ field: "channelHandle", message: "Channel not found." }],
       };
     }
+    if (!channelAvatarUrl) {
+      return {
+        success: false,
+        errors: [
+          {
+            field: "channelAvatarUrl",
+            message: "Channel avatar URL not found.",
+          },
+        ],
+      };
+    }
 
     const response = await youtube.search.list({
-      part: ["snippet"], // We need snippet for title, description, thumbnails
+      part: ["snippet"],
       channelId: channelId,
       q: validKeywords,
-      type: ["video"], // We only want videos
-      maxResults: 10, // Adjust as needed, API allows up to 50
+      type: ["video"],
+      maxResults: 10,
     });
 
     if (!response.data.items) {
-      return { success: true, data: [] }; // No videos found, return empty array
+      return {
+        success: false,
+        errors: [{ field: "videoSearchResponse", message: "No video Found" }],
+      };
     }
 
     const videoDetails: Video[] = response.data.items
       .map((item) => {
         const snippet = item.snippet;
         if (!snippet || !item.id?.videoId) {
-          return null; // Skip items without snippet or videoId
+          return null;
         }
 
         return {
@@ -99,13 +118,19 @@ export async function scrapeVideos(
             snippet.thumbnails?.high?.url ||
             snippet.thumbnails?.medium?.url ||
             snippet.thumbnails?.default?.url ||
-            "", // Get highest quality thumbnail available
+            "",
           url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
         } as Video;
       })
-      .filter(Boolean) as Video[]; // Filter out null values from map
+      .filter(Boolean) as Video[];
 
-    return { success: true, data: videoDetails };
+    return {
+      success: true,
+      data: {
+        videos: videoDetails,
+        channelAvatarUrl,
+      },
+    };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -114,10 +139,9 @@ export async function scrapeVideos(
       "An unexpected error occurred while fetching videos from YouTube API.";
 
     if (error.response) {
-      // YouTube API error (e.g., quota exceeded, invalid API key)
       message = `YouTube API error: ${error.response.data.error.message} (Status ${error.response.status})`;
       if (error.response.status === 404) {
-        message = "Channel not found."; // Specific 404 handling if needed, though channel ID resolution should handle this
+        message = "Channel not found.";
       } else if (error.response.status === 403) {
         message = "YouTube API Quota Exceeded or API key issue.";
       }
