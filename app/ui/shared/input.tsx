@@ -2,12 +2,12 @@
 
 import React from "react";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
   errorMessage?: string;
 }
 
-const Input: React.FC<InputProps> = ({
+const AuthInput: React.FC<FormInputProps> = ({
   id,
   label,
   errorMessage,
@@ -15,6 +15,29 @@ const Input: React.FC<InputProps> = ({
   ...props
 }) => {
   const inputClassName = `peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm text-black outline-2 placeholder:text-gray-500 ${
+    className || ""
+  }`;
+
+  return (
+    <FormInput
+      label={label}
+      id={id}
+      className={inputClassName}
+      aria-invalid={!!errorMessage}
+      aria-describedby={`${id}-error`}
+      {...props}
+    />
+  );
+};
+
+const FormInput: React.FC<FormInputProps> = ({
+  id,
+  label,
+  errorMessage,
+  className,
+  ...props
+}) => {
+  const inputClassName = `${
     errorMessage
       ? "border-red-500 ring-red-500 focus:border-red-500 focus:ring-red-500"
       : ""
@@ -22,9 +45,7 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <div>
-      <label htmlFor={id} className="sr-only">
-        {label}
-      </label>
+      <label htmlFor={id}>{label}</label>
       <input
         id={id}
         className={inputClassName}
@@ -45,4 +66,4 @@ const Input: React.FC<InputProps> = ({
   );
 };
 
-export default Input;
+export { AuthInput, FormInput };

@@ -5,12 +5,13 @@ import { doSignIn } from "../../actions/user";
 import { mapZodErrors, validateField } from "@/utils/utilities";
 import { signInSchema } from "@/utils/zodSchemas";
 import { ValidationError } from "@/types/shared";
-import Input from "../shared/input";
+
 import useDebounce from "@/utils/customHooks";
 import { useRouter } from "next/navigation";
+import { AuthInput } from "../shared/input";
 
 export default function LoginForm() {
-  const [signInResult, dispatchSignIn, isPending] = useActionState(doSignIn, {
+  const [signInResult, dispatchSignIn, pending] = useActionState(doSignIn, {
     success: false,
     errors: [],
   });
@@ -95,7 +96,7 @@ export default function LoginForm() {
     <form className="mt-8 space-y-6" action={handleSubmit}>
       <input type="hidden" name="remember" value="true" />
       <div className="rounded-md shadow-sm -space-y-px">
-        <Input
+        <AuthInput
           label="Email address"
           id="email"
           name="email"
@@ -103,7 +104,7 @@ export default function LoginForm() {
           autoComplete="email"
           placeholder="Enter your email address"
           required
-          disabled={isPending}
+          disabled={pending}
           errorMessage={emailError}
           value={email}
           onChange={(e) => {
@@ -112,7 +113,7 @@ export default function LoginForm() {
           }}
           onBlur={() => debouncedValidate.flush()} // Correctly call flush
         />
-        <Input
+        <AuthInput
           label="Password"
           id="password"
           name="password"
@@ -120,7 +121,7 @@ export default function LoginForm() {
           autoComplete="current-password"
           placeholder="Enter password"
           required
-          disabled={isPending}
+          disabled={pending}
           errorMessage={passwordError}
           value={password}
           onChange={(e) => {
@@ -134,11 +135,11 @@ export default function LoginForm() {
       <div>
         <button
           type="submit"
-          disabled={isPending || !!emailError || !!passwordError}
+          disabled={pending || !!emailError || !!passwordError}
           className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Sign in
-          {isPending && <span className="ml-2">Loading...</span>}
+          {pending && <span className="ml-2">Loading...</span>}
         </button>
       </div>
       {formError && (

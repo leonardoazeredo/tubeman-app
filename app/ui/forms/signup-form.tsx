@@ -5,11 +5,12 @@ import { doSignUp } from "../../actions/user";
 import { mapZodErrors, validateField } from "@/utils/utilities";
 import { signUpSchema } from "@/utils/zodSchemas";
 import { ValidationError } from "@/types/shared";
-import Input from "../shared/input";
+
 import useDebounce from "@/utils/customHooks";
+import { AuthInput } from "../shared/input";
 
 export default function SignupForm() {
-  const [signUpResult, dispatchSignUp, isPending] = useActionState(doSignUp, {
+  const [signUpResult, dispatchSignUp, pending] = useActionState(doSignUp, {
     success: false,
     errors: [],
   });
@@ -23,6 +24,12 @@ export default function SignupForm() {
   );
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
+  function resetErrorFields() {
+    setFormError(undefined);
+    setEmailError(undefined);
+    setPasswordError(undefined);
+  }
 
   // Debounced validation function using custom hook
   const debouncedValidate = useDebounce(
@@ -45,13 +52,12 @@ export default function SignupForm() {
     fieldName: "email" | "password",
     value: string
   ) => {
+    resetErrorFields();
     debouncedValidate(fieldName, value);
   };
 
   const handleSubmit = async (formData: FormData) => {
-    setFormError(undefined);
-    setEmailError(undefined);
-    setPasswordError(undefined);
+    resetErrorFields();
 
     // Final validation before submission
     const schemaValidation = signUpSchema.safeParse({ email, password });
@@ -80,16 +86,14 @@ export default function SignupForm() {
         }
       });
     } else if (signUpResult.success) {
-      setFormError(undefined);
-      setEmailError(undefined);
-      setPasswordError(undefined);
+      resetErrorFields();
       console.log("Signup successful!");
     }
   }, [signUpResult]);
 
   return (
     <form className="mt-8 space-y-6" action={handleSubmit}>
-      <Input
+      <AuthInput
         label="Email address"
         id="email-address"
         name="email"
@@ -97,17 +101,17 @@ export default function SignupForm() {
         autoComplete="email"
         placeholder="Email address"
         required
-        disabled={isPending}
+        disabled={pending}
         errorMessage={emailError}
         value={email}
         onChange={(e) => {
           setEmail(e.target.value);
           handleValidateField("email", e.target.value);
         }}
-        onBlur={() => debouncedValidate.flush()} // Correctly call flush
+        onBlur={() => debouncedValidate.flush()}
       />
 
-      <Input
+      <AuthInput
         label="Password"
         id="password"
         name="password"
@@ -115,25 +119,25 @@ export default function SignupForm() {
         autoComplete="current-password"
         placeholder="Password"
         required
-        disabled={isPending}
+        disabled={pending}
         errorMessage={passwordError}
         value={password}
         onChange={(e) => {
           setPassword(e.target.value);
           handleValidateField("password", e.target.value);
         }}
-        onBlur={() => debouncedValidate.flush()} // Correctly call flush
+        onBlur={() => debouncedValidate.flush()}
         className="mt-4"
       />
 
       <div>
         <button
           type="submit"
-          disabled={isPending || !!emailError || !!passwordError}
+          disabled={pending || !!emailError || !!passwordError}
           className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           Sign up
-          {isPending && <span className="ml-2">Loading...</span>}
+          {pending && <span className="ml-2">Loading...</span>}
         </button>
       </div>
       {formError && (
