@@ -1,24 +1,30 @@
 "use client";
 
-import { scrapeVideos } from "@/app/actions/scrape";
+import { getVideosData } from "@/app/actions/getVideosData";
 import { Result, ValidationError, Video } from "@/types/shared";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { VideoList } from "../videos/videos-list";
+import { FormInput } from "../shared/input";
 
 export default function VideosSearchForm() {
-  const [state, dispatch, pending] = useActionState<Result<Video[]>, FormData>(
-    scrapeVideos,
-    { success: false, errors: [] }
-  );
+  const [state, dispatch, pending] = useActionState<
+    Result<{ videos: Video[]; channelAvatarUrl: string }>,
+    FormData
+  >(getVideosData, { success: false, errors: [] });
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
   );
 
-  const [videos, setVideos] = useState<Video[]>([]);
+  const searchParams = useSearchParams();
+
+  const [videos, setVideos] = useState<Video[] | undefined>(undefined);
+  const [channelAvatarUrl, setChannelAvatarUrl] = useState<string | undefined>(
+    undefined
+  );
 
   const hasSearched: boolean =
-    (state?.success && state.data.length > 0) || false;
+    (state?.success && state.data.videos.length > 0) || false;
 
   const router = useRouter();
 
@@ -46,6 +52,8 @@ export default function VideosSearchForm() {
   useEffect(() => {
     if (!state.success && state.errors) {
       setFormError(undefined);
+      setVideos(undefined);
+      setChannelAvatarUrl(undefined);
       state.errors.forEach((error) => {
         setFormError((prevErrors) =>
           prevErrors ? [...prevErrors, error] : [error]
@@ -53,8 +61,8 @@ export default function VideosSearchForm() {
       });
     } else if (state.success) {
       setFormError(undefined);
-      console.log("Got videos: ", state.data);
-      setVideos(state.data);
+      setVideos(state.data.videos);
+      setChannelAvatarUrl(state.data.channelAvatarUrl);
     }
   }, [state]);
 
@@ -62,28 +70,35 @@ export default function VideosSearchForm() {
     <>
       <form action={dispatch} onSubmit={handleSubmit}>
         <div>
-          <div>
-            <label htmlFor="channelHandle">Channel Handle</label>
-            <input
-              type="text"
-              id="channelHandle"
-              name="channelHandle"
-              placeholder="Channel Handle (e.g., @CorridorCrew)"
-              disabled={pending}
-            />
-          </div>
-          <div>
-            <label htmlFor="keywords">Keywords</label>
-            <input
-              type="text"
-              id="keywords"
-              name="keywords"
-              placeholder="Keywords (e.g., VFX, CGI)"
-              disabled={pending}
-            />
-          </div>
+          <FormInput
+            type="text"
+            id="channelHandle"
+            name="channelHandle"
+            placeholder="Channel Handle (e.g., @CorridorCrew)"
+            defaultValue={searchParams.get("channelHandle") || ""}
+            disabled={pending}
+            className=" bg-gray-800"
+            label="Channel Handle "
+            required
+          />
+
+          <FormInput
+            label="Collection Name "
+            type="text"
+            required
+            id="keywords"
+            name="keywords"
+            placeholder="Keywords (e.g., VFX, CGI)"
+            disabled={pending}
+            className="bg-gray-800"
+            defaultValue={searchParams.get("keywords") || ""}
+          />
         </div>
-        <button type="submit" disabled={pending}>
+        <button
+          type="submit"
+          className="border-gray-500 border rounded-xl px-2 hover:px-3 hover:py-1 hover:rounded-3xl hover:bg-opacity-35 hover:bg-white transition-all "
+          disabled={pending}
+        >
           {pending ? "Fetching..." : "Fetch Videos"}
         </button>
         {formError && (
@@ -96,13 +111,17 @@ export default function VideosSearchForm() {
           </div>
         )}
       </form>
-
-      <VideoList
-        videos={videos}
-        channelHandle={""}
-        hasSearched={hasSearched}
-        keywords={[]}
-      />
+      {!hasSearched && <p>Submit the form to fetch videos.</p>}
+      {(!videos || !channelAvatarUrl) && <p>No videos found.</p>}
+      {videos && channelAvatarUrl && (
+        <VideoList
+          videos={videos}
+          channelHandle={searchParams.get("channelHandle") || ""}
+          channelAvatarUrl={channelAvatarUrl}
+          hasSearched={hasSearched}
+          keywords={searchParams.get("keywords")?.split(" ")}
+        />
+      )}
     </>
   );
 }

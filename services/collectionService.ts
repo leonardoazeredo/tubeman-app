@@ -4,7 +4,7 @@ import { InputJsonValue } from "@prisma/client/runtime/client";
 import { DbCollection } from "@/types/db";
 
 export async function createCollection(
-  _prevState: Result<DbCollection>, // Accept prevState (though we might not use it directly here)
+  _prevState: Result<DbCollection>,
   formData: FormData
 ): Promise<Result<DbCollection>> {
   try {
@@ -102,6 +102,26 @@ export async function getCollectionByUserId(
     };
   }
 }
+export async function getCollectionsByUserId(
+  userId: string
+): Promise<Result<DbCollection[]>> {
+  try {
+    const collections = await prisma.collection.findMany({
+      where: { userId: userId },
+    });
+
+    return { success: true, data: collections };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error getting collection:", error);
+    return {
+      success: false,
+      errors: [
+        { field: "general", message: "Failed to get collection by user id." },
+      ],
+    };
+  }
+}
 
 export async function updateCollection(
   collectionId: string,
@@ -130,7 +150,7 @@ export async function deleteCollection(
   collectionId: string
 ): Promise<Result<DbCollection>> {
   try {
-    const collection = await prisma.collection.findFirstOrThrow({
+    const collection = await prisma.collection.delete({
       where: { id: collectionId },
     });
 

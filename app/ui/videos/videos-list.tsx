@@ -7,18 +7,20 @@ import { useSession } from "next-auth/react";
 import { Video } from "@/types/shared";
 import { createCollection } from "@/services/collectionService";
 import { useRouter } from "next/navigation";
+import { FormInput } from "../shared/input";
 
 interface VideoListProps {
   videos: Video[];
   hasSearched: boolean;
-  channelHandle?: string;
+  channelHandle: string;
+  channelAvatarUrl: string;
   keywords?: string[];
 }
 
 export function VideoList({
   videos,
-  hasSearched,
   channelHandle,
+  channelAvatarUrl,
   keywords,
 }: VideoListProps) {
   const { data: session } = useSession();
@@ -35,17 +37,13 @@ export function VideoList({
       router.push("/collections");
     } else if (!state.success && state.errors && state.errors?.length > 0) {
       console.error("Error creating collection:", state.errors);
-      // Handle errors (e.g., display error message to the user)
+      //TODO Handle errors (e.g., display error message to the user)
     }
   }, [state, router]);
 
-  if (!hasSearched) {
-    return <p>Submit the form to fetch videos.</p>;
-  }
-
-  if (videos.length === 0) {
-    return <p>No videos found.</p>;
-  }
+  const formattedChannelHandle = channelHandle
+    .replace(/(^\w|\s\w)/g, (m) => m.toUpperCase())
+    .replace(" ", "");
 
   return (
     <>
@@ -54,19 +52,26 @@ export function VideoList({
         <input type="hidden" name="videos" value={JSON.stringify(videos)} />
         <input type="hidden" name="keywords" value={JSON.stringify(keywords)} />
         <input type="hidden" name="channelHandle" value={channelHandle} />
-        <div>
-          <label htmlFor="collectionName">Collection Name</label>
-          <input
-            id="collectionName"
-            name="collectionName"
-            type="text"
-            placeholder="Name this Collection"
-            defaultValue="Sample Name"
-            disabled={pending}
-            required
-          />
-        </div>
-        <button type="submit">Create Collection</button>
+
+        <FormInput
+          label="Collection Name "
+          id="collectionName"
+          name="collectionName"
+          type="text"
+          placeholder="Name this Collection"
+          defaultValue="Sample Name"
+          required
+          className="bg-gray-800"
+          disabled={pending}
+        />
+
+        <button
+          type="submit"
+          disabled={pending}
+          className="border-gray-500 border rounded-xl px-2 hover:px-3 hover:py-1 hover:rounded-3xl hover:bg-opacity-35 hover:bg-white transition-all "
+        >
+          Create Collection
+        </button>
       </form>
       <div>
         {videos.map((video) => (
@@ -84,15 +89,18 @@ export function VideoList({
               />
             </Link>
             <p>{video.title}</p>
-            <Link href={`https://www.youtube.com/@${channelHandle}`}>
-              {/* <Image
-                src={video.channelAvatarUrl}
+            <Link
+              className="flex"
+              href={`https://www.youtube.com/@${formattedChannelHandle}`}
+            >
+              <Image
+                src={channelAvatarUrl}
                 width={24}
                 height={24}
                 alt={"Channel's Avatar"}
                 className="mr-2 rounded-lg shadow"
-              />{" "} */}
-              {channelHandle}
+              />{" "}
+              {formattedChannelHandle}
             </Link>
             <p className="text-white-800" style={{ lineBreak: "anywhere" }}>
               {video.description}

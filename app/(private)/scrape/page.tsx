@@ -1,10 +1,13 @@
 import VideosSearchForm from "@/app/ui/forms/scrape-videos-form";
 import PrivatePage from "@/app/ui/pages/private-page";
+import { Suspense } from "react";
 
 export default function Collections() {
   return (
     <PrivatePage pageTitle="Scrape">
-      <VideosSearchForm />
+      <Suspense fallback="Loading...">
+        <VideosSearchForm />
+      </Suspense>
     </PrivatePage>
   );
 }
