@@ -1,12 +1,19 @@
-import { SessionProvider } from "next-auth/react";
 import React from "react";
+import { redirect } from "next/navigation";
+import { PrivatePageChildProps } from "@/types/shared";
+import { auth } from "@/auth";
+import { SessionProvider } from "next-auth/react";
 
-interface PrivatePageProps {
-  pageTitle: string;
-  children: React.ReactNode;
-}
+const PrivatePage: React.FC<PrivatePageChildProps> = async ({
+  pageTitle,
+  children,
+}) => {
+  const session = await auth();
 
-const PrivatePage: React.FC<PrivatePageProps> = ({ pageTitle, children }) => {
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   return (
     <SessionProvider>
       <main className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
