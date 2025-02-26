@@ -14,28 +14,30 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid()) @db.Uuid
-  email    String @unique @db.VarChar(255)
-  password String @db.VarChar(255)
+  id       String  @id @default(uuid()) @db.Uuid
+  email    String  @unique @db.VarChar(255)
+  password String  @db.VarChar(255)
+  userName String? @unique @db.VarChar(255)
 
   createdAt DateTime @default(now()) @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @db.Timestamptz(6)
 
   collections Collection[]
 
-  @@index([email])
+  @@index([email, userName])
 }
 
 model Collection {
-  id     String @id @default(uuid()) @db.Uuid
-  name   String @db.VarChar(255)
-  userId String @db.Uuid
+  id     String  @id @default(uuid()) @db.Uuid
+  name   String  @db.VarChar(255)
+  userId String  @db.Uuid
+  slug   String? @unique @db.VarChar(255)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  channelId String @db.VarChar(255) // YouTube Channel ID
+  channelId String @db.VarChar(255)
 
-  keywords String[] // Keywords for filtering videos
+  keywords String[]
 
   videos Json[] // Array of video objects (title, url, thumbnailUrl, description, publishedAt)
 
