@@ -9,7 +9,9 @@ import {
 } from "@/types/scraper";
 import { ValidationError, Video } from "@/types/shared";
 import bcrypt from "bcryptjs";
+import slugify from "slugify";
 import { ZodIssue, ZodObject } from "zod";
+import { prisma } from "./prisma";
 
 export async function validateUser(email: string): Promise<DbUser | null> {
   const user = await fetchUserByEmail(email);
@@ -111,4 +113,32 @@ export function getLargestThumbnailUrl(
     const currentArea = current.width * current.height;
     return currentArea > largestArea ? current : largest;
   }).url;
+}
+
+export async function generateUniqueSlug(
+  collectionName: string,
+  userName: string,
+  retryCount: number = 0
+): Promise<string> {
+  const baseSlug = slugify(collectionName, { lower: true });
+  let slug = baseSlug;
+
+  if (retryCount > 0) {
+    slug = `${baseSlug}-${retryCount}`; // Append retry count if not the first attempt
+  }
+
+  // Check if a collection with this slug already exists for the user
+  const existingCollection = await prisma.collection.findFirst({
+    where: {
+      slug,
+      userName, // Scope uniqueness check to the user
+    },
+  });
+
+  if (!existingCollection) {
+    return slug; // Slug is unique for this user
+  } else {
+    // Slug is not unique, retry with incremented retryCount
+    return generateUniqueSlug(collectionName, userName, retryCount + 1); // Recursive call
+  }
 }
