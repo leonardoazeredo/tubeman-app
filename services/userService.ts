@@ -1,3 +1,5 @@
+"use server";
+
 import { DbUser } from "@/types/db";
 import { prisma } from "@/utils/prisma";
 import { hashPassword } from "@/utils/utilities";

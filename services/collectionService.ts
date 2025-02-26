@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/utils/prisma";
 import { Result } from "@/types/shared";
 import { InputJsonValue } from "@prisma/client/runtime/client";
