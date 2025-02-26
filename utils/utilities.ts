@@ -1,5 +1,5 @@
 import { fetchUserByEmail } from "@/services/userService";
-import { DbUser } from "@/types/db";
+import { DbCollection, DbUser } from "@/types/db";
 import {
   YtInitialData,
   Tab,
@@ -117,6 +117,7 @@ export function getLargestThumbnailUrl(
 
 export async function generateUniqueSlug(
   collectionName: string,
+  userId: string,
   userName: string,
   retryCount: number = 0
 ): Promise<string> {
@@ -128,17 +129,18 @@ export async function generateUniqueSlug(
   }
 
   // Check if a collection with this slug already exists for the user
-  const existingCollection = await prisma.collection.findFirst({
-    where: {
-      slug,
-      userName, // Scope uniqueness check to the user
-    },
-  });
+  const existingCollection: DbCollection | null =
+    await prisma.collection.findFirst({
+      where: {
+        slug,
+        userId, // Scope uniqueness check to the user
+      },
+    });
 
   if (!existingCollection) {
     return slug; // Slug is unique for this user
   } else {
     // Slug is not unique, retry with incremented retryCount
-    return generateUniqueSlug(collectionName, userName, retryCount + 1); // Recursive call
+    return generateUniqueSlug(collectionName, userId, userName, retryCount + 1); // Recursive call
   }
 }

@@ -3,14 +3,16 @@
 import { prisma } from "@/utils/prisma";
 import { Result } from "@/types/shared";
 import { InputJsonValue } from "@prisma/client/runtime/client";
-import { DbCollection } from "@/types/db";
+import { DbCollection, DbUser } from "@/types/db";
+import { generateUniqueSlug } from "@/utils/utilities";
+import { fetchUserById } from "./userService";
 
 export async function createCollection(
   _prevState: Result<DbCollection>,
   formData: FormData
 ): Promise<Result<DbCollection>> {
   try {
-    const name = formData.get("collectionName")?.toString();
+    const collectionName = formData.get("collectionName")?.toString();
     const userId = formData.get("userId")?.toString();
     const channelHandle = formData.get("channelHandle")?.toString();
     const keywordsString = formData.get("keywords")?.toString();
@@ -18,7 +20,7 @@ export async function createCollection(
 
     if (
       !userId ||
-      !name ||
+      !collectionName ||
       !channelHandle ||
       !keywordsString ||
       !videosString
@@ -28,32 +30,67 @@ export async function createCollection(
         errors: [
           {
             field: "general",
-            message: `Missing required collection data.${userId}, ${name}, ${channelHandle}, ${keywordsString}, ${videosString}`,
+            message: `Missing required collection data.${userId}, ${collectionName}, ${channelHandle}, ${keywordsString}, ${videosString}`,
           },
         ],
       };
     }
-    console.log(userId, name, channelHandle, keywordsString, videosString);
+    console.log(
+      userId,
+      collectionName,
+      channelHandle,
+      keywordsString,
+      videosString
+    );
     const keywords = JSON.parse(keywordsString) as string[];
     const videos = JSON.parse(videosString) as InputJsonValue[];
     const channelId = channelHandle.replace(/^@/, "");
 
-    if (!Array.isArray(keywords) || !Array.isArray(videos)) {
+    const user: DbUser | null = await fetchUserById(userId);
+
+    if (
+      !Array.isArray(keywords) ||
+      !Array.isArray(videos) ||
+      !user ||
+      !user.userName
+    ) {
       return {
         success: false,
         errors: [
-          { field: "general", message: "Invalid keywords or videos data." },
+          {
+            field: "general",
+            message: "Invalid keywords, videos data or user data.",
+          },
         ],
       };
     }
 
-    const newCollection = await prisma.collection.create({
+    const slug = await generateUniqueSlug(
+      collectionName,
+      user.id,
+      user?.userName
+    );
+
+    if (!slug || slug.length < 0) {
+      return {
+        success: false,
+        errors: [
+          {
+            field: "general",
+            message: "Could not generate a slug.",
+          },
+        ],
+      };
+    }
+
+    const newCollection: DbCollection = await prisma.collection.create({
       data: {
         userId,
-        name,
+        name: collectionName,
         channelId,
         keywords,
         videos: videos,
+        slug,
       },
     });
     return { success: true, data: newCollection };
