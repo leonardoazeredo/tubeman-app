@@ -42,6 +42,43 @@ export async function fetchUserByEmail(email: string): Promise<DbUser | null> {
   }
 }
 
+export async function fetchUserById(userId: string): Promise<DbUser | null> {
+  try {
+    if (!userId) {
+      console.error("fetchUserById: Invalid email provided:", userId);
+      throw new Error("Invalid user ID");
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (user) {
+      console.log(`fetchUserById: User found with ID: ${userId}`);
+    } else {
+      console.log(`fetchUserById: No user found with ID: ${userId}`);
+    }
+
+    return user;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error(
+      `fetchUserById: Error fetching user with ID: ${userId}`,
+      error
+    );
+    if (error.message === "Invalid ID") {
+      throw new Error("Invalid ID");
+    } else if (
+      error.code === "ECONNREFUSED" ||
+      error.code === "P2003" ||
+      error.code === "P2006"
+    ) {
+      throw new Error("Database error");
+    } else {
+      throw new Error("Failed to fetch user");
+    }
+  }
+}
+
 export async function createUser(
   email: string,
   password: string
