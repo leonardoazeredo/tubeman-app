@@ -19,21 +19,26 @@ export default function SignupForm() {
     undefined
   );
   const [emailError, setEmailError] = useState<string | undefined>(undefined);
+  const [userNameError, setUserNameError] = useState<string | undefined>(
+    undefined
+  );
   const [passwordError, setPasswordError] = useState<string | undefined>(
     undefined
   );
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [userName, setUserName] = useState<string>("");
 
   function resetErrorFields() {
     setFormError(undefined);
     setEmailError(undefined);
     setPasswordError(undefined);
+    setUserNameError(undefined);
   }
 
   // Debounced validation function using custom hook
   const debouncedValidate = useDebounce(
-    (fieldName: "email" | "password", value: string) => {
+    (fieldName: "email" | "password" | "user-name", value: string) => {
       const schema = signUpSchema;
       const error = validateField(schema, fieldName, value, {
         email,
@@ -41,15 +46,18 @@ export default function SignupForm() {
       });
       if (fieldName === "email") {
         setEmailError(error);
-      } else if (fieldName === "password") {
+      }
+      if (fieldName === "password") {
         setPasswordError(error);
+      } else if (fieldName === "user-name") {
+        setUserNameError(error);
       }
     },
     1000
   );
 
   const handleValidateField = (
-    fieldName: "email" | "password",
+    fieldName: "email" | "password" | "user-name",
     value: string
   ) => {
     resetErrorFields();
@@ -59,8 +67,11 @@ export default function SignupForm() {
   const handleSubmit = async (formData: FormData) => {
     resetErrorFields();
 
-    // Final validation before submission
-    const schemaValidation = signUpSchema.safeParse({ email, password });
+    const schemaValidation = signUpSchema.safeParse({
+      userName,
+      email,
+      password,
+    });
 
     if (!schemaValidation.success) {
       const clientErrors = mapZodErrors(schemaValidation.error.errors);
@@ -79,6 +90,8 @@ export default function SignupForm() {
           setEmailError(error.message);
         } else if (error.field === "password") {
           setPasswordError(error.message);
+        } else if (error.field === "user-name") {
+          setUserNameError(error.message);
         } else {
           setFormError((prevErrors) =>
             prevErrors ? [...prevErrors, error] : [error]
@@ -93,6 +106,24 @@ export default function SignupForm() {
 
   return (
     <form className="mt-8 space-y-6" action={handleSubmit}>
+      <AuthInput
+        label="User name"
+        id="user-name"
+        name="user-name"
+        type="text"
+        autoComplete="username"
+        placeholder="User Name"
+        required
+        disabled={pending}
+        errorMessage={userNameError}
+        value={userName}
+        onChange={(e) => {
+          setUserName(e.target.value);
+          handleValidateField("user-name", e.target.value);
+        }}
+        onBlur={() => debouncedValidate.flush()}
+      />
+
       <AuthInput
         label="Email address"
         id="email-address"

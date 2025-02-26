@@ -81,24 +81,27 @@ export async function fetchUserById(userId: string): Promise<DbUser | null> {
 
 export async function createUser(
   email: string,
-  password: string
+  password: string,
+  userName: string
 ): Promise<Result<DbUser>> {
   try {
-    if (!email || !password) {
-      console.error("createUser: Email and password are required");
+    if (!email || !password || !userName) {
+      console.error("createUser: User Name, email and password are required");
       const error: ValidationError = {
         field: "general",
-        message: "Email and password are required.",
+        message: "User name, email and password are required.",
       };
       return { success: false, errors: [error] };
     }
 
     const existingUser = await prisma.user.findFirst({
-      where: { email },
+      where: { userName, email },
     });
 
     if (existingUser) {
-      console.error(`createUser: User with email ${email} already exists`);
+      console.error(
+        `createUser: User with email ${email} or ${userName} already exists`
+      );
       const error: ValidationError = {
         field: "email",
         message: "Email already in use.",
@@ -109,12 +112,15 @@ export async function createUser(
 
     const newUser = await prisma.user.create({
       data: {
+        userName: userName,
         email: email,
         password: hashedPassword,
       },
     });
 
-    console.log(`createUser: User created successfully with email: ${email}`);
+    console.log(
+      `createUser: User created successfully with email: ${email} and User Name: ${userName}`
+    );
     return { success: true, data: newUser };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

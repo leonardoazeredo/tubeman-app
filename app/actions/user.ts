@@ -15,8 +15,9 @@ export async function doSignUp(
   try {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const userName = formData.get("user-name") as string;
 
-    const validation = signUpSchema.safeParse({ email, password });
+    const validation = signUpSchema.safeParse({ userName, email, password });
     if (!validation.success) {
       const errors: ValidationError[] = Object.entries(
         validation.error.flatten().fieldErrors
@@ -32,7 +33,11 @@ export async function doSignUp(
       return { success: false, errors: [error] };
     }
 
-    const creationResult: Result<DbUser> = await createUser(email, password);
+    const creationResult: Result<DbUser> = await createUser(
+      email,
+      password,
+      userName
+    );
     if (!creationResult.success) {
       return {
         success: false,
