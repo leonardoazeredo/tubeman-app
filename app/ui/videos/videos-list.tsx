@@ -23,7 +23,8 @@ export function VideoList({
   channelAvatarUrl,
   keywords,
 }: VideoListProps) {
-  const { data: session } = useSession();
+  const session = useSession();
+
   const [state, dispatch, pending] = useActionState(createCollection, {
     success: false,
     errors: [],
@@ -33,7 +34,6 @@ export function VideoList({
   useEffect(() => {
     if (state.success) {
       console.log("Collection created successfully!", state.data);
-      // Redirect to collections page after successful creation
       router.push("/collections");
     } else if (!state.success && state.errors && state.errors?.length > 0) {
       console.error("Error creating collection:", state.errors);
@@ -48,7 +48,7 @@ export function VideoList({
   return (
     <>
       <form action={dispatch}>
-        <input type="hidden" name="userId" value={session?.user?.id} />
+        <input type="hidden" name="userId" value={session?.data?.user?.id} />
         <input type="hidden" name="videos" value={JSON.stringify(videos)} />
         <input type="hidden" name="keywords" value={JSON.stringify(keywords)} />
         <input type="hidden" name="channelHandle" value={channelHandle} />

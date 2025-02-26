@@ -24,13 +24,17 @@ export async function createCollection(
       return {
         success: false,
         errors: [
-          { field: "general", message: "Missing required collection data." },
+          {
+            field: "general",
+            message: `Missing required collection data.${userId}, ${name}, ${channelHandle}, ${keywordsString}, ${videosString}`,
+          },
         ],
       };
     }
-    const keywords = JSON.parse(keywordsString) as string[]; // Parse keywords from JSON string
-    const videos = JSON.parse(videosString) as InputJsonValue[]; // Parse videos from JSON string
-    const channelId = channelHandle.replace(/^@/, ""); // Remove @ if present and use as channelId
+    console.log(userId, name, channelHandle, keywordsString, videosString);
+    const keywords = JSON.parse(keywordsString) as string[];
+    const videos = JSON.parse(videosString) as InputJsonValue[];
+    const channelId = channelHandle.replace(/^@/, "");
 
     if (!Array.isArray(keywords) || !Array.isArray(videos)) {
       return {
@@ -47,7 +51,7 @@ export async function createCollection(
         name,
         channelId,
         keywords,
-        videos: videos, // Use parsed videos array
+        videos: videos,
       },
     });
     return { success: true, data: newCollection };

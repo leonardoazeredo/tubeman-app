@@ -21,8 +21,6 @@ async function getChannelDataFromHandle(
       forUsername: channelHandle,
     });
 
-    console.log(JSON.stringify(response));
-
     if (response.data.items && response.data.items.length > 0) {
       channelId = response.data.items[0].id ?? "";
       channelAvatarUrl =

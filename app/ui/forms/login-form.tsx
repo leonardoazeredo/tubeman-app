@@ -28,7 +28,6 @@ export default function LoginForm() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
 
-  // Debounced validation function using custom hook
   const debouncedValidate = useDebounce(
     (fieldName: "email" | "password", value: string) => {
       const schema = signInSchema;
@@ -55,7 +54,6 @@ export default function LoginForm() {
   const handleSubmit = async (formData: FormData) => {
     setFormError(undefined);
 
-    // Final validation on submit
     const schemaValidation = signInSchema.safeParse({ email, password });
     if (!schemaValidation.success) {
       const clientErrors = mapZodErrors(schemaValidation.error.errors);
@@ -68,7 +66,6 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (!signInResult.success && signInResult.errors) {
-      // Clear general form error first
       setFormError(undefined);
 
       signInResult.errors.forEach((error) => {
@@ -83,7 +80,6 @@ export default function LoginForm() {
         }
       });
     } else if (signInResult.success) {
-      // Clear all errors on successful sign-in
       setFormError(undefined);
       setEmailError(undefined);
       setPasswordError(undefined);
@@ -111,7 +107,7 @@ export default function LoginForm() {
             setEmail(e.target.value);
             handleValidateField("email", e.target.value);
           }}
-          onBlur={() => debouncedValidate.flush()} // Correctly call flush
+          onBlur={() => debouncedValidate.flush()}
         />
         <AuthInput
           label="Password"
@@ -128,7 +124,7 @@ export default function LoginForm() {
             setPassword(e.target.value);
             handleValidateField("password", e.target.value);
           }}
-          onBlur={() => debouncedValidate.flush()} // Correctly call flush
+          onBlur={() => debouncedValidate.flush()}
           className="mt-4"
         />
       </div>

@@ -37,10 +37,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsedCredentials = signInSchema.safeParse(credentials);
 
         if (!parsedCredentials.success) {
-          //  This returns an object with `formErrors` and `fieldErrors`.
-          //  We'll use `fieldErrors` for field-specific errors.
           const errors = parsedCredentials.error.flatten().fieldErrors;
-          // Convert fieldErrors to an array of objects
+
           const errorArray = Object.entries(errors).flatMap(
             ([field, messages]) =>
               messages.map((message) => ({ field, message }))
@@ -52,14 +50,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         const { email, password } = parsedCredentials.data;
-        const user: DbUser | null = await validateUser(email);
+        const user = await validateUser(email);
 
         if (!user || !(await validatePassword(password, user.password))) {
           console.log("User failed to login");
           return null;
         }
 
+        console.log("Authorize callback - user object before return:", user);
         console.log("User logedin with success");
+
         return user;
       },
     }),
@@ -82,11 +82,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       const isOnProtectedRoute = routes.some((link) =>
         nextUrl.pathname.startsWith(link.href)
       );
-      // If the user is not logged in and on a protected route, deny access
+
       if (!isLoggedIn && isOnProtectedRoute) {
         return false;
       }
-      // Otherwise, allow access
+
       return true;
     },
   },
