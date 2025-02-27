@@ -1,4 +1,3 @@
-// collectionService.test.ts
 import {
   createCollection,
   getCollectionById,
@@ -12,7 +11,6 @@ import { Result } from "@/types/shared";
 import { DbCollection } from "@/types/db";
 import { InputJsonValue } from "@prisma/client/runtime/library";
 
-// Mock prisma
 jest.mock("@/utils/prisma", () => ({
   prisma: {
     collection: {
@@ -61,7 +59,7 @@ describe("collectionService", () => {
       const formData = new FormData();
       formData.append("userId", "test-user-id");
       formData.append("collectionName", "Test Collection");
-      formData.append("channelHandle", "testChannelHandle"); // Removed "@" to match service logic
+      formData.append("channelHandle", "testChannelHandle");
       formData.append("keywords", JSON.stringify(["keyword1", "keyword2"]));
       formData.append("videos", JSON.stringify([]));
 
@@ -74,7 +72,7 @@ describe("collectionService", () => {
         data: {
           userId: "test-user-id",
           name: "Test Collection",
-          channelId: "testChannelHandle", // Expecting "testChannelHandle"
+          channelId: "testChannelHandle",
           keywords: ["keyword1", "keyword2"],
           videos: [],
         },
@@ -83,7 +81,7 @@ describe("collectionService", () => {
     });
 
     it("should return an error if required data is missing in formData", async () => {
-      const formData = new FormData(); // Missing required data
+      const formData = new FormData();
 
       const result = await createCollection(
         { success: true, data: {} as DbCollection } as Result<DbCollection>,
@@ -107,7 +105,7 @@ describe("collectionService", () => {
       const formData = new FormData();
       formData.append("userId", "test-user-id");
       formData.append("collectionName", "Test Collection");
-      formData.append("channelHandle", "testChannelHandle"); // Removed "@" to match service logic
+      formData.append("channelHandle", "testChannelHandle");
       formData.append("keywords", JSON.stringify(["keyword1", "keyword2"]));
       formData.append("videos", JSON.stringify([]));
 

@@ -1,5 +1,5 @@
 import LoginForm from "../../ui/forms/login-form";
-import AuthPage from "../../ui/pages/auth-page"; // Import AuthLayout
+import AuthPage from "../../ui/pages/auth-page";
 
 export default function LogIn() {
   return (

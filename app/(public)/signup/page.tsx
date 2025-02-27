@@ -1,5 +1,5 @@
 import SignUpForm from "../../ui/forms/signup-form";
-import AuthPage from "../../ui/pages/auth-page"; // Import AuthLayout
+import AuthPage from "../../ui/pages/auth-page";
 
 export default function SignUp() {
   return (

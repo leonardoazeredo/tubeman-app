@@ -36,7 +36,6 @@ export default function SignupForm() {
     setUserNameError(undefined);
   }
 
-  // Debounced validation function using custom hook
   const debouncedValidate = useDebounce(
     (fieldName: "email" | "password" | "user-name", value: string) => {
       const schema = signUpSchema;

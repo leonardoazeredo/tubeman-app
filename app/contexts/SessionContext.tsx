@@ -1,4 +1,3 @@
-// app/contexts/SessionContext.tsx
 "use client";
 
 import { Session } from "next-auth";

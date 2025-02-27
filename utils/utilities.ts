@@ -43,20 +43,19 @@ export const mapZodErrors = (zodErrors: ZodIssue[]): ValidationError[] => {
   }));
 };
 
-// Reusable validateField function
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const validateField = <Schema extends ZodObject<any>>(
   schema: Schema,
   fieldName: string,
   value: string,
-  allValues: Record<string, string> // Pass all form values for context-dependent validation if needed
+  allValues: Record<string, string>
 ): string | undefined => {
-  const result = schema.safeParse({ ...allValues, [fieldName]: value }); // Merge field value with all values for validation context
+  const result = schema.safeParse({ ...allValues, [fieldName]: value });
   if (!result.success) {
     const fieldError = result.error.formErrors.fieldErrors[fieldName]?.[0];
     return fieldError;
   }
-  return undefined; // No error
+  return undefined;
 };
 
 export function extractVideoDetails(data: YtInitialData): Video[] {
@@ -75,16 +74,6 @@ export function extractVideoDetails(data: YtInitialData): Video[] {
               const thumbnailUrl = getLargestThumbnailUrl(
                 video.thumbnail?.thumbnails ?? []
               );
-
-              // Extract avatar, and get largest
-              // const avatarSources =
-              //   video.avatar?.decoratedAvatarViewModel?.avatar?.avatarViewModel
-              //     ?.image?.sources;
-              // const channelAvatar = getLargestThumbnail(avatarSources ?? []);
-
-              // const channelId =
-              //   video.longBylineText?.runs?.[0]?.navigationEndpoint
-              //     ?.browseEndpoint?.browseId || "";
 
               videoDetails.push({
                 id: video.videoId ?? "",
