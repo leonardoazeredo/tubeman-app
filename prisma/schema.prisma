@@ -2,40 +2,101 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider      = "zod-prisma-types"
+  relationModel = true
+  modelCase     = "camelCase"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_PRISMA_URL")
 }
 
 model User {
-  id       String @id @default(uuid()) @db.Uuid
-  email    String @unique @db.VarChar(255)
-  password String @db.VarChar(255)
-  userName String @unique @db.VarChar(255)
-
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-
+  id          String       @id @default(uuid()) @db.Uuid
+  email       String       @unique @db.VarChar(255)
+  password    String       @db.VarChar(255)
+  userName    String?      @unique @db.VarChar(255)
+  createdAt   DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime     @updatedAt @db.Timestamptz(6)
   collections Collection[]
-
-  @@index([email, userName])
+  channels    Channel[] // Optional: if you link users to channels
 }
 
 model Collection {
-  id               String  @id @default(uuid()) @db.Uuid
-  name             String  @db.VarChar(255)
-  channelAvatarUrl String? @db.VarChar(255)
-  userId           String  @db.Uuid
-  slug             String? @unique @db.VarChar(255)
+  id                 String              @id @default(uuid()) @db.Uuid
+  name               String              @db.VarChar(255)
+  slug               String?             @unique @db.VarChar(255) // Slug is back!
+  userId             String              @db.Uuid
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId          String              @db.VarChar(255) // Corrected: VARCHAR, referencing Channel.channelId
+  channel            Channel             @relation(fields: [channelId], references: [channelId], onDelete: Restrict) // Corrected: references correct field, onDelete Restrict or Cascade
+  collectionKeywords CollectionKeyword[] // Many-to-many
+  collectionVideos   CollectionVideo[] // Many-to-many
+  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([channelId])
+}
 
-  channelId String @db.VarChar(255)
+model Channel {
+  id               String       @id @default(uuid()) @db.Uuid
+  name             String       @db.VarChar(255)
+  channelId        String       @unique @db.VarChar(255) // YouTube's Channel ID
+  channelAvatarUrl String?      @db.VarChar(255)
+  videos           Video[]
+  collections      Collection[]
+  createdAt        DateTime     @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime     @updatedAt @db.Timestamptz(6)
+  userId           String?      @db.Uuid // Optional link to User
+  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull) // Optional
 
-  keywords String[]
+  @@index([channelId])
+}
 
-  videos Json[] // Array of video objects (title, url, thumbnailUrl, description, publishedAt)
+model Video {
+  id           String            @id @default(uuid()) @db.Uuid
+  title        String            @db.VarChar(255)
+  url          String            @unique @db.VarChar(1023)
+  description  String            @db.VarChar(1023)
+  thumbnailUrl String            @db.VarChar(1023)
+  publishedAt  DateTime?         @db.Timestamptz(6)
+  channelId    String            @db.VarChar(255) // Corrected: VARCHAR, referencing Channel.channelId
+  channel      Channel           @relation(fields: [channelId], references: [channelId], onDelete: Cascade) // Corrected: references correct field
+  collections  CollectionVideo[] // Many-to-many
 
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
+  @@index([channelId])
+  @@index([url])
+}
+
+model CollectionKeyword {
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String     @db.Uuid
+  keyword      Keyword    @relation(fields: [keywordId], references: [id], onDelete: Cascade)
+  keywordId    String     @db.Uuid
+  assignedAt   DateTime   @default(now()) // Track when keyword was added
+
+  @@id([collectionId, keywordId])
+  @@index([keywordId])
+}
+
+model CollectionVideo {
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String     @db.Uuid
+  video        Video      @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  videoId      String     @db.Uuid
+  assignedAt   DateTime   @default(now()) // Track when video was added
+
+  @@id([collectionId, videoId])
+  @@index([videoId])
+}
+
+model Keyword {
+  id          String              @id @default(uuid()) @db.Uuid
+  text        String              @unique @db.VarChar(255)
+  collections CollectionKeyword[]
+  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
 }
