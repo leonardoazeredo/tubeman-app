@@ -1,13 +1,6 @@
 import { fetchUserByEmail } from "@/services/userService";
 import { DbCollection, DbUser } from "@/types/db";
-import {
-  YtInitialData,
-  Tab,
-  SectionContent,
-  ItemContent,
-  VideoRenderer,
-} from "@/types/scraper";
-import { ValidationError, Video } from "@/types/shared";
+import { ValidationError } from "@/types/shared";
 import bcrypt from "bcryptjs";
 import slugify from "slugify";
 import { ZodIssue, ZodObject } from "zod";
@@ -57,52 +50,6 @@ export const validateField = <Schema extends ZodObject<any>>(
   }
   return undefined;
 };
-
-export function extractVideoDetails(data: YtInitialData): Video[] {
-  const videoDetails: Video[] = [];
-
-  data.contents?.twoColumnBrowseResultsRenderer?.tabs?.forEach((tab: Tab) => {
-    tab.expandableTabRenderer?.content?.sectionListRenderer?.contents?.forEach(
-      (sectionContent: SectionContent) => {
-        sectionContent.itemSectionRenderer?.contents?.forEach(
-          (itemContent: ItemContent) => {
-            const video: VideoRenderer | undefined = itemContent.videoRenderer;
-            if (video) {
-              const title = video.title?.runs?.[0]?.text ?? "Untitled";
-              const description =
-                video.descriptionSnippet?.runs?.[0]?.text ?? "";
-              const thumbnailUrl = getLargestThumbnailUrl(
-                video.thumbnail?.thumbnails ?? []
-              );
-
-              videoDetails.push({
-                id: video.videoId ?? "",
-                title,
-                description,
-                thumbnailUrl,
-                url: `https://www.youtube.com/watch?v=${video.videoId}`,
-              });
-            }
-          }
-        );
-      }
-    );
-  });
-
-  return videoDetails;
-}
-//bring back getLargestThumbnail
-export function getLargestThumbnailUrl(
-  thumbnails: Array<{ url: string; width: number; height: number }>
-): string {
-  if (!thumbnails || thumbnails.length === 0) return "";
-
-  return thumbnails.reduce((largest, current) => {
-    const largestArea = largest.width * largest.height;
-    const currentArea = current.width * current.height;
-    return currentArea > largestArea ? current : largest;
-  }).url;
-}
 
 export async function generateUniqueSlug(
   collectionName: string,
