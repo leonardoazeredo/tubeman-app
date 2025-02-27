@@ -1,10 +1,8 @@
-"use client";
-
 import Link from "next/link";
 import { DbCollection } from "@/types/db";
 
 interface CollectionsListProps {
-  collections: DbCollection[]; // Define props interface
+  collections: DbCollection[];
 }
 
 export function CollectionsList({ collections }: CollectionsListProps) {
