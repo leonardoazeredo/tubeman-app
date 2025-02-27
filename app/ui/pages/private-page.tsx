@@ -4,10 +4,7 @@ import { PrivatePageChildProps } from "@/types/shared";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
 
-const PrivatePage: React.FC<PrivatePageChildProps> = async ({
-  pageTitle,
-  children,
-}) => {
+const PrivatePage = async ({ pageTitle, children }: PrivatePageChildProps) => {
   const session = await auth();
 
   if (!session?.user) {

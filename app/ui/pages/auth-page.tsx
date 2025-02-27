@@ -5,7 +5,7 @@ interface AuthPageProps {
   children: React.ReactNode;
 }
 
-const AuthPage: React.FC<AuthPageProps> = ({ title, children }) => {
+const AuthPage = ({ title, children }: AuthPageProps) => {
   return (
     <main className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">

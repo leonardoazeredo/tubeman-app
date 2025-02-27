@@ -17,20 +17,22 @@ export async function createCollection(
     const channelHandle = formData.get("channelHandle")?.toString();
     const keywordsString = formData.get("keywords")?.toString();
     const videosString = formData.get("videos")?.toString();
+    const channelAvatarUrl = formData.get("channelAvatarUrl")?.toString();
 
     if (
       !userId ||
       !collectionName ||
       !channelHandle ||
       !keywordsString ||
-      !videosString
+      !videosString ||
+      !channelAvatarUrl
     ) {
       return {
         success: false,
         errors: [
           {
             field: "general",
-            message: `Missing required collection data.${userId}, ${collectionName}, ${channelHandle}, ${keywordsString}, ${videosString}`,
+            message: `Missing required collection data.${userId}, ${collectionName}, ${channelHandle}, ${keywordsString}, ${videosString}, ${channelAvatarUrl}`,
           },
         ],
       };
@@ -40,7 +42,8 @@ export async function createCollection(
       collectionName,
       channelHandle,
       keywordsString,
-      videosString
+      videosString,
+      channelAvatarUrl
     );
     const keywords = JSON.parse(keywordsString) as string[];
     const videos = JSON.parse(videosString) as InputJsonValue[];
@@ -91,6 +94,7 @@ export async function createCollection(
         keywords,
         videos: videos,
         slug,
+        channelAvatarUrl,
       },
     });
     return { success: true, data: newCollection };

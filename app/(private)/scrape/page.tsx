@@ -1,4 +1,4 @@
-import VideosSearchForm from "@/app/ui/forms/scrape-videos-form";
+import VideosSearchForm from "@/app/ui/forms/videos-search-form";
 import PrivatePage from "@/app/ui/pages/private-page";
 import { Suspense } from "react";
 

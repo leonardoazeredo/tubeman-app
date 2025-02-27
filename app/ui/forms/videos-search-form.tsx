@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { VideoList } from "../videos/videos-list";
 import { FormInput } from "../shared/input";
+import { CreateCollectionForm } from "../collections/create-collections-form";
 
 export default function VideosSearchForm() {
   const [state, dispatch, pending] = useActionState<
@@ -113,14 +114,21 @@ export default function VideosSearchForm() {
       </form>
       {!hasSearched && <p>Submit the form to fetch videos.</p>}
       {(!videos || !channelAvatarUrl) && <p>No videos found.</p>}
+
       {videos && channelAvatarUrl && (
-        <VideoList
-          videos={videos}
-          channelHandle={searchParams.get("channelHandle") || ""}
-          channelAvatarUrl={channelAvatarUrl}
-          hasSearched={hasSearched}
-          keywords={searchParams.get("keywords")?.split(" ")}
-        />
+        <>
+          <CreateCollectionForm
+            videos={videos}
+            channelHandle={searchParams.get("channelHandle") || ""}
+            keywords={searchParams.get("keywords")?.split(" ")}
+            channelAvatarUrl={channelAvatarUrl}
+          />
+          <VideoList
+            videos={videos}
+            channelAvatarUrl={channelAvatarUrl}
+            channelHandle={searchParams.get("channelHandle") || ""}
+          />
+        </>
       )}
     </>
   );

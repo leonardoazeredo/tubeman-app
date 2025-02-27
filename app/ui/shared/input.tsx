@@ -7,13 +7,13 @@ interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   errorMessage?: string;
 }
 
-const AuthInput: React.FC<FormInputProps> = ({
+const AuthInput = ({
   id,
   label,
   errorMessage,
   className,
   ...props
-}) => {
+}: FormInputProps) => {
   const inputClassName = `peer block w-full rounded-md border border-gray-200 py-[9px] pl-10 text-sm text-black outline-2 placeholder:text-gray-500 ${
     className || ""
   }`;
@@ -30,13 +30,13 @@ const AuthInput: React.FC<FormInputProps> = ({
   );
 };
 
-const FormInput: React.FC<FormInputProps> = ({
+const FormInput = ({
   id,
   label,
   errorMessage,
   className,
   ...props
-}) => {
+}: FormInputProps) => {
   const inputClassName = `${
     errorMessage
       ? "border-red-500 ring-red-500 focus:border-red-500 focus:ring-red-500"

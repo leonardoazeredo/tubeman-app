@@ -12,7 +12,7 @@ export function CollectionsList({ collections }: CollectionsListProps) {
     <ul>
       {collections.map((collection) => (
         <li key={collection.id}>
-          <Link href={`/collections/${collection.id}`}>
+          <Link href={`/collections/${collection.slug}`}>
             {collection.name} (Channel ID: {collection.channelId}) -{" "}
             {collection.videos.length} videos
           </Link>

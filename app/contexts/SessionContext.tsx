@@ -22,9 +22,7 @@ interface SessionProviderProps {
 }
 
 // 3. Create a SessionProvider Component
-export const SessionContextProvider: React.FC<SessionProviderProps> = ({
-  children,
-}) => {
+export const SessionContextProvider = ({ children }: SessionProviderProps) => {
   const sessionHook = useSession(); // Use useSession hook to get session data
 
   const sessionValue: SessionContextType = {
