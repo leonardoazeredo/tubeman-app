@@ -1,18 +1,35 @@
+// ---------------------------
+// Generator - Prisma Client
+// ---------------------------
+// Sets up Prisma Client generation for JavaScript.
 generator client {
   provider = "prisma-client-js"
 }
 
+// ---------------------------
+// Generator - Zod Prisma Types
+// ---------------------------
+// Sets up Zod schema generation from Prisma schema.
 generator zod {
   provider      = "zod-prisma-types"
   relationModel = true
   modelCase     = "camelCase"
 }
 
+// ---------------------------
+// Datasource
+// ---------------------------
+// Defines the database connection to PostgreSQL.
 datasource db {
   provider = "postgresql"
   url      = env("POSTGRES_PRISMA_URL")
 }
 
+// ---------------------------
+// User Model
+// ---------------------------
+// Represents a user in the application.
+// One-to-many relationship with Collection and Channel
 model User {
   id          String       @id @default(uuid()) @db.Uuid
   email       String       @unique @db.VarChar(255)
@@ -21,41 +38,66 @@ model User {
   createdAt   DateTime     @default(now()) @db.Timestamptz(6)
   updatedAt   DateTime     @updatedAt @db.Timestamptz(6)
   collections Collection[]
-  channels    Channel[] // Optional: if you link users to channels
+  channels    Channel[]
+
+  @@index([email])
+  @@index([userName])
 }
 
+// ---------------------------
+// Collection Model
+// ---------------------------
+// Represents a collection of videos curated by a user.
+// Many-to-one relationship with User (onDelete: Cascade) - If User is deleted, delete Collection
+// Many-to-one relationship with Channel (onDelete: Restrict) - If Channel is deleted, restrict deletion if Collection exists
+// Many-to-many relationship with Keyword through CollectionKeyword
+// Many-to-many relationship with Video through CollectionVideo
 model Collection {
   id                 String              @id @default(uuid()) @db.Uuid
   name               String              @db.VarChar(255)
-  slug               String?             @unique @db.VarChar(255) // Slug is back!
+  slug               String?             @unique @db.VarChar(255)
   userId             String              @db.Uuid
   user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  channelId          String              @db.VarChar(255) // Corrected: VARCHAR, referencing Channel.channelId
-  channel            Channel             @relation(fields: [channelId], references: [channelId], onDelete: Restrict) // Corrected: references correct field, onDelete Restrict or Cascade
-  collectionKeywords CollectionKeyword[] // Many-to-many
-  collectionVideos   CollectionVideo[] // Many-to-many
+  channelId          String              @db.VarChar(255)
+  channel            Channel             @relation(fields: [channelId], references: [channelId], onDelete: Restrict)
+  collectionKeywords CollectionKeyword[]
+  collectionVideos   CollectionVideo[]
   createdAt          DateTime            @default(now()) @db.Timestamptz(6)
   updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
 
   @@index([userId])
   @@index([channelId])
+  @@index([slug])
 }
 
+// ---------------------------
+// Channel Model
+// ---------------------------
+// Represents a YouTube channel.
+// One-to-many relationship with Video (onDelete: Cascade) - If Channel is deleted, delete Video
+// One-to-many relationship with Collection (onDelete: Restrict) - If Channel is deleted, restrict deletion if Collection exists
+// Many-to-one relationship with User (onDelete: SetNull) - If User is deleted, set userId to null
 model Channel {
   id               String       @id @default(uuid()) @db.Uuid
   name             String       @db.VarChar(255)
-  channelId        String       @unique @db.VarChar(255) // YouTube's Channel ID
+  channelId        String       @unique @db.VarChar(255)
   channelAvatarUrl String?      @db.VarChar(255)
   videos           Video[]
   collections      Collection[]
   createdAt        DateTime     @default(now()) @db.Timestamptz(6)
   updatedAt        DateTime     @updatedAt @db.Timestamptz(6)
-  userId           String?      @db.Uuid // Optional link to User
-  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull) // Optional
+  userId           String?      @db.Uuid
+  user             User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([channelId])
 }
 
+// ---------------------------
+// Video Model
+// ---------------------------
+// Represents a YouTube video.
+// Many-to-one relationship with Channel (onDelete: Cascade) - If Channel is deleted, delete Video
+// Many-to-many relationship with Collection through CollectionVideo
 model Video {
   id           String            @id @default(uuid()) @db.Uuid
   title        String            @db.VarChar(255)
@@ -63,40 +105,59 @@ model Video {
   description  String            @db.VarChar(1023)
   thumbnailUrl String            @db.VarChar(1023)
   publishedAt  DateTime?         @db.Timestamptz(6)
-  channelId    String            @db.VarChar(255) // Corrected: VARCHAR, referencing Channel.channelId
-  channel      Channel           @relation(fields: [channelId], references: [channelId], onDelete: Cascade) // Corrected: references correct field
-  collections  CollectionVideo[] // Many-to-many
+  channelId    String            @db.VarChar(255)
+  channel      Channel           @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+  collections  CollectionVideo[]
 
   @@index([channelId])
   @@index([url])
 }
 
+// ---------------------------
+// CollectionKeyword (Join Table)
+// ---------------------------
+// Many-to-many between Collection and Keyword
+// If Collection is deleted, remove join record
+// If Keyword is deleted, remove join record
 model CollectionKeyword {
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   collectionId String     @db.Uuid
   keyword      Keyword    @relation(fields: [keywordId], references: [id], onDelete: Cascade)
   keywordId    String     @db.Uuid
-  assignedAt   DateTime   @default(now()) // Track when keyword was added
+  assignedAt   DateTime   @default(now())
 
   @@id([collectionId, keywordId])
   @@index([keywordId])
+  @@index([collectionId])
 }
 
+// ---------------------------
+// CollectionVideo (Join Table)
+// ---------------------------
+// Many-to-many between Collection and Video
+// If Collection is deleted, remove join record
+// If Video is deleted, remove join record
 model CollectionVideo {
   collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
   collectionId String     @db.Uuid
   video        Video      @relation(fields: [videoId], references: [id], onDelete: Cascade)
   videoId      String     @db.Uuid
-  assignedAt   DateTime   @default(now()) // Track when video was added
+  assignedAt   DateTime   @default(now())
 
   @@id([collectionId, videoId])
   @@index([videoId])
+  @@index([collectionId])
 }
 
+// ---------------------------
+// Keyword Model
+// ---------------------------
+// Represents a keyword.
+// Many-to-many relationship with Collection through CollectionKeyword
 model Keyword {
   id          String              @id @default(uuid()) @db.Uuid
   text        String              @unique @db.VarChar(255)
   collections CollectionKeyword[]
-  createdAt   DateTime            @default(now()) @db.Timestamptz(6)
+  createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt @db.Timestamptz(6)
 }
