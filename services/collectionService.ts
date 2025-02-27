@@ -124,6 +124,26 @@ export async function getCollectionById(
     };
   }
 }
+export async function getCollectionBySlug(
+  collectionSlug: string
+): Promise<Result<DbCollection>> {
+  try {
+    const collection = await prisma.collection.findFirstOrThrow({
+      where: { slug: collectionSlug },
+    });
+
+    return { success: true, data: collection };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error("Error getting collection:", error);
+    return {
+      success: false,
+      errors: [
+        { field: "general", message: "Failed to get collection by slug." },
+      ],
+    };
+  }
+}
 
 export async function getCollectionByUserId(
   userId: string
