@@ -1,11 +1,11 @@
 "use server";
 
-import { DbUser } from "@/types/db";
 import { prisma } from "@/utils/prisma";
 import { hashPassword } from "@/utils/utilities";
 import { Result, ValidationError } from "@/types/shared";
+import { User } from "@/prisma/generated/zod";
 
-export async function fetchUserByEmail(email: string): Promise<DbUser | null> {
+export async function fetchUserByEmail(email: string): Promise<User | null> {
   try {
     if (!email) {
       console.error("fetchUserByEmail: Invalid email provided:", email);
@@ -42,7 +42,7 @@ export async function fetchUserByEmail(email: string): Promise<DbUser | null> {
   }
 }
 
-export async function fetchUserById(userId: string): Promise<DbUser | null> {
+export async function fetchUserById(userId: string): Promise<User | null> {
   try {
     if (!userId) {
       console.error("fetchUserById: Invalid email provided:", userId);
@@ -83,7 +83,7 @@ export async function createUser(
   email: string,
   password: string,
   userName: string
-): Promise<Result<DbUser>> {
+): Promise<Result<User>> {
   try {
     if (!email || !password || !userName) {
       console.error("createUser: User Name, email and password are required");

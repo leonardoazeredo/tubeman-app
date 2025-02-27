@@ -3,14 +3,15 @@
 import { prisma } from "@/utils/prisma";
 import { Result } from "@/types/shared";
 import { InputJsonValue } from "@prisma/client/runtime/client";
-import { DbCollection, DbUser } from "@/types/db";
-import { generateUniqueSlug } from "@/utils/utilities";
+
+import { generateUniqueSlug, mapZodErrors } from "@/utils/utilities";
 import { fetchUserById } from "./userService";
+import { Collection, CollectionSchema, User } from "../prisma/generated/zod";
 
 export async function createCollection(
-  _prevState: Result<DbCollection>,
+  _prevState: Result<Collection>,
   formData: FormData
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collectionName = formData.get("collectionName")?.toString();
     const userId = formData.get("userId")?.toString();
@@ -46,57 +47,59 @@ export async function createCollection(
       channelAvatarUrl
     );
     const keywords = JSON.parse(keywordsString) as string[];
-    const videos = JSON.parse(videosString) as InputJsonValue[];
+    const videos = JSON.parse(videosString);
     const channelId = channelHandle.replace(/^@/, "");
 
-    const user: DbUser | null = await fetchUserById(userId);
+    const parsedData = CollectionSchema.safeParse({
+      name: collectionName,
+      userId,
+      channelId,
+      keywords,
+      videos,
+      channelAvatarUrl,
+    });
 
-    if (
-      !Array.isArray(keywords) ||
-      !Array.isArray(videos) ||
-      !user ||
-      !user.userName
-    ) {
-      return {
-        success: false,
-        errors: [
-          {
-            field: "general",
-            message: "Invalid keywords, videos data or user data.",
-          },
-        ],
-      };
+    if (!parsedData.success) {
+      return { success: false, errors: mapZodErrors(parsedData.error.errors) };
     }
 
+    const user: User | null = await fetchUserById(userId);
+
+    if (!user || !user.userName) {
+      return {
+        success: false,
+        errors: [{ field: "general", message: "Invalid user data." }],
+      };
+    }
     const slug = await generateUniqueSlug(
       collectionName,
       user.id,
-      user?.userName
+      user.userName
     );
-
-    if (!slug || slug.length < 0) {
+    if (!slug) {
       return {
         success: false,
-        errors: [
-          {
-            field: "general",
-            message: "Could not generate a slug.",
-          },
-        ],
+        errors: [{ field: "general", message: "Could not generate a slug." }],
       };
     }
-
-    const newCollection: DbCollection = await prisma.collection.create({
+    const newCollection: Collection = await prisma.collection.create({
       data: {
-        userId,
-        name: collectionName,
-        channelId,
-        keywords,
-        videos: videos,
+        ...parsedData.data, // Use the validated and transformed data
         slug,
-        channelAvatarUrl,
       },
     });
+
+    // const newCollection: Collection = await prisma.collection.create({
+    //   data: {
+    //     userId,
+    //     name: collectionName,
+    //     channelId,
+    //     keywords,
+    //     videos: videos,
+    //     slug,
+    //     channelAvatarUrl,
+    //   },
+    // });
     return { success: true, data: newCollection };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
@@ -110,7 +113,7 @@ export async function createCollection(
 
 export async function getCollectionById(
   collectionId: string
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { id: collectionId },
@@ -130,7 +133,7 @@ export async function getCollectionById(
 }
 export async function getCollectionBySlug(
   collectionSlug: string
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { slug: collectionSlug },
@@ -151,7 +154,7 @@ export async function getCollectionBySlug(
 
 export async function getCollectionByUserId(
   userId: string
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { userId: userId },
@@ -171,7 +174,7 @@ export async function getCollectionByUserId(
 }
 export async function getCollectionsByUserId(
   userId: string
-): Promise<Result<DbCollection[]>> {
+): Promise<Result<Collection[]>> {
   try {
     const collections = await prisma.collection.findMany({
       where: { userId: userId },
@@ -195,7 +198,7 @@ export async function updateCollection(
   name?: string,
   keywords?: string[],
   videos?: InputJsonValue[]
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collection = await prisma.collection.update({
       where: { id: collectionId },
@@ -215,7 +218,7 @@ export async function updateCollection(
 
 export async function deleteCollection(
   collectionId: string
-): Promise<Result<DbCollection>> {
+): Promise<Result<Collection>> {
   try {
     const collection = await prisma.collection.delete({
       where: { id: collectionId },
