@@ -1,23 +1,19 @@
-// app/(private)/collections/[collectionSlug]/page.tsx
-// Removed "use client" directive - now a Server Component
-
 import PrivatePage from "@/app/ui/pages/private-page";
 import { getCollectionBySlug } from "@/services/collectionService";
 import { DbCollection } from "@/types/db";
-import { VideoList } from "@/app/ui/videos/videos-list"; // Adjust path if needed
+import { VideoList } from "@/app/ui/videos/videos-list";
 
-interface CollectionDetailPageProps {
-  params: {
-    collectionSlug: string;
-  };
+interface CollectionDetailPage {
+  params: Promise<{ collectionSlug: string }>;
 }
 
-async function CollectionDetailPage({ params }: CollectionDetailPageProps) {
-  const collectionSlug = params.collectionSlug;
+export default async function CollectionDetailPage({
+  params,
+}: CollectionDetailPage) {
+  const collectionSlug = (await params).collectionSlug;
 
   let collection: DbCollection | null = null;
   let error: string | null = null;
-  let loading = true;
 
   try {
     const collectionResult = await getCollectionBySlug(collectionSlug);
@@ -32,12 +28,6 @@ async function CollectionDetailPage({ params }: CollectionDetailPageProps) {
   } catch (e: any) {
     console.error("Error fetching collection:", e);
     error = "Error loading collection details.";
-  } finally {
-    loading = false;
-  }
-
-  if (loading) {
-    return <div>Loading collection details...</div>;
   }
 
   if (error) {
@@ -64,5 +54,3 @@ async function CollectionDetailPage({ params }: CollectionDetailPageProps) {
     </PrivatePage>
   );
 }
-
-export default CollectionDetailPage;
