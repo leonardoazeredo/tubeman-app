@@ -81,7 +81,7 @@ model Channel {
   id               String       @id @default(uuid()) @db.Uuid
   name             String       @db.VarChar(255)
   channelId        String       @unique @db.VarChar(255)
-  channelAvatarUrl String?      @db.VarChar(255)
+  channelAvatarUrl String?      @db.VarChar(1023) // Increased length for URLs
   videos           Video[]
   collections      Collection[]
   createdAt        DateTime     @default(now()) @db.Timestamptz(6)
@@ -99,18 +99,47 @@ model Channel {
 // Many-to-one relationship with Channel (onDelete: Cascade) - If Channel is deleted, delete Video
 // Many-to-many relationship with Collection through CollectionVideo
 model Video {
-  id           String            @id @default(uuid()) @db.Uuid
-  title        String            @db.VarChar(255)
-  url          String            @unique @db.VarChar(1023)
-  description  String            @db.VarChar(1023)
-  thumbnailUrl String            @db.VarChar(1023)
-  publishedAt  DateTime?         @db.Timestamptz(6)
-  channelId    String            @db.VarChar(255)
-  channel      Channel           @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
-  collections  CollectionVideo[]
+  id                   String               @id @default(uuid()) @db.Uuid
+  channelId            String               @db.VarChar(255)
+  channel              Channel              @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
+  title                String               @db.VarChar(100) // Max length from YouTube API docs
+  description          String?              @db.VarChar(5000) // Max length, nullable
+  publishedAt          DateTime?            @db.Timestamptz(6)
+  tags                 String[] // Use Prisma's native array type
+  categoryId           String?              @db.VarChar(255) // It's a string ID, not an integer
+  liveBroadcastContent LiveBroadcastContent @default(none) // Use an enum
+  defaultLanguage      String?              @db.VarChar(255) // Store language code
+  defaultAudioLanguage String?              @db.VarChar(255) // Store language code
+  url                  String               @unique @db.VarChar(1023)
+  collections          CollectionVideo[]
+  thumbnails           Thumbnail[] // Relationship to Thumbnail model
 
   @@index([channelId])
   @@index([url])
+}
+
+// ---------------------------
+// Thumbnail Model
+// ---------------------------
+// Represents a YouTube video's Thumbnail.
+// Many-to-one relationship with Video (onDelete: Cascade) - If Video is deleted, delete thumbnail
+model Thumbnail {
+  id        String @id @default(uuid())
+  videoId   String @db.Uuid
+  video     Video  @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  url       String @db.VarChar(1023)
+  width     Int
+  height    Int
+  imageType String @db.VarChar(255) // "default", "medium", "high", etc.
+}
+
+// ---------------------------
+// Enums
+// ---------------------------
+enum LiveBroadcastContent {
+  live
+  none
+  upcoming
 }
 
 // ---------------------------
