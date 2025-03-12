@@ -36,46 +36,36 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
 
   const handleActionState = useCallback(
     (state: Result<CollectionWithRelations>) => {
+      console.log("handleActionState called with:", state); // Log the entire state
+
       if (state.success) {
-        if (state.data && state.data.id) {
-          // Check for both data AND id
-          // Could be either update OR delete.  Use the id to determine.
+        if (state.data?.id) {
           setCollections((prevCollections) => {
             const index = prevCollections.findIndex(
-              (collection) => collection.id === state.data.id
+              (c) => c.id === state.data.id
             );
             if (index > -1) {
-              // If found, it could be an update or a delete.
-              if (
-                state.data.name &&
-                state.data.channel &&
-                state.data.channelId
-              ) {
-                console.log("const newCollections = [...prevCollections];");
+              //It exists, check if it's from delete or update.
+              if (state === updateCollectionState) {
                 // Update: Replace the existing collection
                 const newCollections = [...prevCollections];
-                newCollections[index] = state.data; // Replace with new data
+                newCollections[index] = state.data;
                 return newCollections;
               } else {
-                // Delete: Remove the collection
-                console.log("prevCollections.filter");
-                return prevCollections.filter(
-                  (collection) => collection.id !== state.data.id
-                );
+                //It is delete
+                return prevCollections.filter((c) => c.id !== state.data.id);
               }
             } else {
-              return prevCollections;
+              return prevCollections; //Should never happen.
             }
           });
-        } else {
-          //No op, nothing to do, because no data or no Id
         }
       } else if (state.errors) {
         console.error("Error in action:", state.errors);
         // TODO: Display error message to the user
       }
     },
-    []
+    [updateCollectionState] // Add updateCollectionState as dependency.
   );
 
   useEffect(() => {
