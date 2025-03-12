@@ -112,10 +112,30 @@ export default function VideosSearchForm() {
           </div>
         )}
       </form>
-      {!hasSearched && <p>Submit the form to fetch videos.</p>}
-      {(!videos || !channelAvatarUrl) && <p>No videos found.</p>}
 
-      {videos && channelAvatarUrl && (
+      {pending && (
+        <div className="mt-4">
+          <p>Scraping...</p>
+        </div>
+      )}
+
+      {!state.success &&
+        formError &&
+        formError.map((error, index) => (
+          <p key={index} className="text-red-500">
+            {error.message}
+          </p>
+        ))}
+
+      {!pending && videos && videos.length === 0 && !formError && (
+        <p>No videos found matching your criteria.</p>
+      )}
+
+      {!hasSearched && !pending && <p>Submit the form to fetch videos.</p>}
+
+      {!videos || (!channelAvatarUrl && <p>No videos found.</p>)}
+
+      {!pending && videos && videos.length > 0 && channelAvatarUrl && (
         <>
           <CreateCollectionForm
             videos={videos}
