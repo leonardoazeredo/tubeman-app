@@ -1,7 +1,11 @@
 import NextAuth, { CredentialsSignin, DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { signInSchema } from "@/utils/zodSchemas";
-import { validatePassword, validateUser } from "@/utils/utilities";
+import {
+  mapZodErrors,
+  validatePassword,
+  validateUser,
+} from "@/utils/utilities";
 import { DbUser } from "@/types/db";
 
 export const routes = [
@@ -37,12 +41,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const parsedCredentials = signInSchema.safeParse(credentials);
 
         if (!parsedCredentials.success) {
-          const errors = parsedCredentials.error.flatten().fieldErrors;
-
-          const errorArray = Object.entries(errors).flatMap(
-            ([field, messages]) =>
-              messages.map((message) => ({ field, message }))
-          );
+          const errorArray = mapZodErrors(parsedCredentials.error.errors);
 
           throw new CredentialsSignin(
             JSON.stringify({ type: "validation", errors: errorArray })

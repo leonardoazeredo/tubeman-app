@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { createCollection } from "@/services/collectionService";
+import { createCollectionAction } from "@/app/actions/collection";
 import { useRouter } from "next/navigation";
 import { FormInput } from "../shared/input";
 import { Video } from "@/types/shared";
@@ -21,7 +21,7 @@ export function CreateCollectionForm({
 }: CreateCollectionFormProps) {
   const session = useSession();
 
-  const [state, dispatch, pending] = useActionState(createCollection, {
+  const [state, dispatch, pending] = useActionState(createCollectionAction, {
     success: false,
     errors: [],
   });

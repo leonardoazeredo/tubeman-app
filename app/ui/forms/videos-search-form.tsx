@@ -1,12 +1,12 @@
 "use client";
 
-import { getVideosData } from "@/app/actions/getVideosData";
 import { Result, ValidationError, Video } from "@/types/shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
 import { VideoList } from "../videos/videos-list";
 import { FormInput } from "../shared/input";
 import { CreateCollectionForm } from "../collections/create-collections-form";
+import { getVideosData } from "@/services/youtubeService";
 
 export default function VideosSearchForm() {
   const [state, dispatch, pending] = useActionState<

@@ -1,7 +1,7 @@
 import PrivatePage from "@/app/ui/pages/private-page";
 import { getCollectionBySlug } from "@/services/collectionService";
-import { DbCollection } from "@/types/db";
 import { VideoList } from "@/app/ui/videos/videos-list";
+import { Collection } from "@/prisma/generated/zod";
 
 interface CollectionDetailPage {
   params: Promise<{ collectionSlug: string }>;
@@ -12,7 +12,7 @@ export default async function CollectionDetailPage({
 }: CollectionDetailPage) {
   const collectionSlug = (await params).collectionSlug;
 
-  let collection: DbCollection | null = null;
+  let collection: Collection | null = null;
   let error: string | null = null;
 
   try {

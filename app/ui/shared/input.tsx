@@ -3,7 +3,7 @@
 import React from "react";
 
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string;
+  label?: string;
   errorMessage?: string;
 }
 
@@ -45,7 +45,7 @@ const FormInput = ({
 
   return (
     <div>
-      <label htmlFor={id}>{label}</label>
+      {label && label.length > 0 && <label htmlFor={id}>{label}</label>}
       <input
         id={id}
         className={inputClassName}
