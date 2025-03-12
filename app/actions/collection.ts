@@ -1,3 +1,4 @@
+// app/actions/collection.ts
 "use server";
 
 import {
@@ -35,14 +36,15 @@ export async function createCollectionAction(
     };
   }
 
+  // Parse keywords and videos *here*, in the action.
   let keywords: string[] = [];
   try {
-    keywords = JSON.parse(keywordsString);
+    keywords = JSON.parse(keywordsString || "[]"); // Provide a default empty array if null/undefined
     if (!Array.isArray(keywords)) {
       throw new Error("Keywords must be an array");
     }
-  } catch (_error) {
-    console.log(_error);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
     return {
       success: false,
       errors: [
@@ -54,14 +56,14 @@ export async function createCollectionAction(
     };
   }
 
-  let videos: z.infer<typeof videoSchema>[] = [];
+  let videos: z.infer<typeof videoSchema>[] = []; // Correctly type 'videos'
   try {
-    videos = JSON.parse(videosString);
+    videos = JSON.parse(videosString || "[]"); // Provide a default empty array
     if (!Array.isArray(videos)) {
       throw new Error("Videos must be an array");
     }
-  } catch (_error) {
-    console.log(_error);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (_) {
     return {
       success: false,
       errors: [
@@ -72,6 +74,8 @@ export async function createCollectionAction(
       ],
     };
   }
+
+  // CORRECT - Pass individual parameters, NOT formData
   return createCollectionService(
     userId,
     collectionName,
@@ -96,6 +100,7 @@ export async function updateCollectionAction(
       errors: [{ field: "general", message: "Collection ID is required." }],
     };
   }
+  // Parse keywords and videos (assuming they are JSON strings)
   let keywords: string[] | undefined;
   if (keywordsString) {
     try {
@@ -103,8 +108,9 @@ export async function updateCollectionAction(
       if (!Array.isArray(keywords)) {
         throw new Error("Keywords must be an array");
       }
-    } catch (_error) {
-      console.log(_error);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // Use _ to ignore the error
       return {
         success: false,
         errors: [
@@ -125,8 +131,9 @@ export async function updateCollectionAction(
       if (!Array.isArray(videos)) {
         throw new Error("Videos must be an array");
       }
-    } catch (_error) {
-      console.log(_error);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
+      // Use _ to ignore the error
       return {
         success: false,
         errors: [
@@ -146,10 +153,11 @@ export async function updateCollectionAction(
   );
 }
 
-export async function deleteCollectionAction(
+export async function doDeleteCollectionAction(
   prevState: Result<CollectionWithRelations>, // Correct type
   formData: FormData
 ): Promise<Result<CollectionWithRelations>> {
+  // Correct type
   const collectionId = formData.get("collectionId")?.toString();
 
   if (!collectionId) {

@@ -13,15 +13,20 @@ export async function getChannelId(
   channelHandle: string
 ): Promise<string | null> {
   try {
-    const response = await youtube.channels.list({
-      part: ["id"],
-      forUsername: channelHandle.replace(/^@/, ""),
+    const response = await youtube.search.list({
+      part: ["snippet"],
+      type: ["channel"],
+      q: channelHandle.replace(/^@/, ""),
+      maxResults: 1,
     });
+    console.log(response);
 
     if (response.data.items && response.data.items.length > 0) {
-      return response.data.items[0].id || null;
+      const channelId = response.data.items[0].snippet?.channelId;
+      return channelId || null;
+    } else {
+      return null;
     }
-    return null;
   } catch (error) {
     console.error("Error fetching channel ID:", error);
     return null;

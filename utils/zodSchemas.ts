@@ -46,6 +46,7 @@ export const createCollectionSchema = object({
   collectionName: string()
     .min(1, "Collection name is required")
     .max(255, "Collection name is too long"),
+  channelHandle: string().min(1, "Channel handle is required"),
   channelId: string().min(1, "Channel ID is required"),
   keywords: array(
     string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
