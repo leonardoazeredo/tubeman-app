@@ -1,4 +1,4 @@
-import { array, object, string } from "zod";
+import { array, object, string, z } from "zod";
 
 export const signInSchema = object({
   email: string({ required_error: "Email is required!" }).email({
@@ -32,24 +32,27 @@ export const scrapeSearchParamsSchema = object({
     .transform((value: string) => value.replace(/[\s,.;|]+/g, " ").trim()),
 });
 
+// --- Zod Schemas ---
+export const videoSchema = object({
+  id: string(),
+  title: string(),
+  url: string(),
+  thumbnailUrl: string(),
+  description: string(),
+});
+
+// channelHandle renamed to channelId and is now a string, since the helper function
+// getChannelDataFromHandle does the job of translating the handle to an id
 export const createCollectionSchema = object({
   userId: string().uuid("Invalid user ID format"),
   collectionName: string()
     .min(1, "Collection name is required")
     .max(255, "Collection name is too long"),
-  channelHandle: string().min(1, "Channel handle is required"),
+  channelId: string().min(1, "Channel ID is required"), // Changed to channelId
   keywords: array(
     string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
-  ),
-  videos: array(
-    object({
-      id: string(),
-      title: string(),
-      url: string(),
-      thumbnailUrl: string(),
-      description: string(),
-    })
-  ),
+  ), // Array of strings
+  videos: array(videoSchema), // Use the videoSchema
   channelAvatarUrl: string().url("Invalid channel avatar URL format"),
 });
 
@@ -57,9 +60,21 @@ export const updateCollectionSchema = object({
   collectionId: string().uuid("Invalid collection ID format"),
   collectionName: string()
     .min(1, "Collection name is required")
-    .max(255, "Collection name is too long"),
+    .max(255, "Collection name is too long")
+    .optional(),
+  keywords: array(
+    string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
+  ).optional(),
+  videos: array(videoSchema).optional(), // Use the videoSchema
 });
 
 export const deleteCollectionSchema = object({
   collectionId: string().uuid("Invalid collection ID format"),
 });
+
+// --- TypeScript Types (Derived from Zod) ---
+// 2. Derive TypeScript types from the Zod schemas using z.infer.
+export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
+
+// --- Prisma-Generated Types (for includes) ---
+// Type for query results that include relations.

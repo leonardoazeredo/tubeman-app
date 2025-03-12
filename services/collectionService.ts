@@ -4,15 +4,16 @@ import { prisma } from "@/utils/prisma";
 import { mapZodErrors, generateUniqueSlug } from "@/utils/utilities";
 import { Result } from "@/types/shared";
 
-import { Collection } from "../prisma/generated/zod";
 import { fetchUserById } from "./userService";
 import {
   createCollectionSchema,
   deleteCollectionSchema,
   updateCollectionSchema,
+  videoSchema,
 } from "@/utils/zodSchemas";
 import { Prisma } from "@prisma/client";
 import { getChannelId } from "./youtubeService";
+import { z } from "zod";
 
 export type CollectionWithRelations = Prisma.CollectionGetPayload<{
   include: {
@@ -139,94 +140,16 @@ export async function getCollectionsByUserId(
   }
 }
 
-export async function updateCollectionService(
-  collectionId: string,
-  collectionName: string
-): Promise<Result<Collection>> {
-  const validationResult = updateCollectionSchema.safeParse({
-    collectionId,
-    collectionName,
-  });
-
-  if (!validationResult.success) {
-    return {
-      success: false,
-      errors: mapZodErrors(validationResult.error.errors),
-    };
-  }
-
-  try {
-    const collection = await prisma.collection.update({
-      where: { id: validationResult.data.collectionId },
-      data: { name: validationResult.data.collectionName },
-      include: {
-        channel: true,
-        collectionKeywords: { include: { keyword: true } },
-        collectionVideos: { include: { video: true } },
-      },
-    });
-    return { success: true, data: collection };
-  } catch (error) {
-    console.error("Error updating collection name:", error);
-    let message = "Failed to update collection name.";
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    return { success: false, errors: [{ field: "general", message }] };
-  }
-}
-
-export async function deleteCollectionService(
-  collectionId: string
-): Promise<Result<Collection>> {
-  const validationResult = deleteCollectionSchema.safeParse({ collectionId });
-
-  if (!validationResult.success) {
-    return {
-      success: false,
-      errors: mapZodErrors(validationResult.error.errors),
-    };
-  }
-
-  try {
-    const collection = await prisma.collection.delete({
-      where: { id: validationResult.data.collectionId },
-      include: {
-        channel: true,
-        collectionKeywords: { include: { keyword: true } },
-        collectionVideos: { include: { video: true } },
-      },
-    });
-
-    return { success: true, data: collection };
-  } catch (error) {
-    console.error("Error deleting collection:", error);
-    let message = "Failed to delete collection";
-    if (error instanceof Error) {
-      message = error.message;
-    }
-    return { success: false, errors: [{ field: "general", message }] };
-  }
-}
-
 export async function createCollectionService(
-  collectionName: string,
   userId: string,
+  collectionName: string,
   channelHandle: string,
   channelAvatarUrl: string,
-  keywords: string,
-  videos: string
-): Promise<Result<Collection>> {
+  keywords: string[],
+  videos: z.infer<typeof videoSchema>[]
+): Promise<Result<CollectionWithRelations>> {
   try {
-    const validatedData = createCollectionSchema.safeParse({
-      userId,
-      collectionName,
-      channelHandle,
-      channelAvatarUrl,
-      keywords: JSON.parse(keywords || "[]"),
-      videos: JSON.parse(videos || "[]"),
-    });
-
+    // Get the *actual* channel ID from the YouTube API.
     const channelId = await getChannelId(channelHandle);
     if (!channelId) {
       return {
@@ -236,6 +159,15 @@ export async function createCollectionService(
         ],
       };
     }
+
+    const validatedData = createCollectionSchema.safeParse({
+      userId,
+      collectionName,
+      channelId,
+      keywords,
+      videos,
+      channelAvatarUrl,
+    });
 
     if (!validatedData.success) {
       return {
@@ -264,29 +196,32 @@ export async function createCollectionService(
       };
     }
 
-    // Upsert the Channel
-    await prisma.channel.upsert({
-      where: { channelId: channelId },
+    // Upsert the Channel (using the correct channelId)
+    const channel = await prisma.channel.upsert({
+      where: { channelId: validatedData.data.channelId }, // Use the CORRECT channelId
       update: {
-        channelAvatarUrl: validatedData.data.channelAvatarUrl,
-        userId: user.id,
+        channelAvatarUrl: validatedData.data.channelAvatarUrl, // Update avatar URL
+        userId: user.id, // Ensure correct user association
+        name: channelHandle,
       },
       create: {
-        channelId: channelId,
-        name: validatedData.data.channelHandle,
+        channelId: validatedData.data.channelId, // Use the CORRECT channelId
+        name: channelHandle, // Use channel handle for consistency
         channelAvatarUrl: validatedData.data.channelAvatarUrl,
         userId: user.id,
       },
     });
 
-    // Create the Collection with includes
+    // Create the Collection (using the correct channelId)
     const newCollection = await prisma.collection.create({
       data: {
         userId: validatedData.data.userId,
         name: validatedData.data.collectionName,
-        channelId: validatedData.data.channelHandle,
+        channelId: validatedData.data.channelId, // Use the CORRECT channelId
         slug,
+        // channelAvatarUrl: validatedData.data.channelAvatarUrl, // Add missing field
         collectionKeywords: {
+          // Create CollectionKeyword entries.
           create: validatedData.data.keywords.map((keywordText) => ({
             keyword: {
               connectOrCreate: {
@@ -297,6 +232,7 @@ export async function createCollectionService(
           })),
         },
         collectionVideos: {
+          // Create CollectionVideo entries
           create: validatedData.data.videos.map((video) => ({
             video: {
               connectOrCreate: {
@@ -307,7 +243,7 @@ export async function createCollectionService(
                   url: video.url,
                   thumbnailUrl: video.thumbnailUrl,
                   description: video.description,
-                  channelId: validatedData.data.channelHandle,
+                  channelId: validatedData.data.channelId, //CORRECT channelId
                 },
               },
             },
@@ -325,6 +261,123 @@ export async function createCollectionService(
   } catch (error) {
     console.error("Error creating collection:", error);
     let message = "Failed to create collection.";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return { success: false, errors: [{ field: "general", message }] };
+  }
+}
+
+export async function updateCollectionService(
+  collectionId: string,
+  collectionName?: string, // Optional now
+  keywords?: string[], // Optional
+  videos?: z.infer<typeof videoSchema>[] // Optional
+): Promise<Result<CollectionWithRelations>> {
+  const validationResult = updateCollectionSchema.safeParse({
+    collectionId,
+    collectionName,
+    keywords,
+    videos,
+  });
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      errors: mapZodErrors(validationResult.error.errors),
+    };
+  }
+
+  try {
+    // Create updateData object dynamically
+    const updateData: Prisma.CollectionUpdateInput = {};
+
+    if (validationResult.data.collectionName !== undefined) {
+      updateData.name = validationResult.data.collectionName;
+    }
+
+    // Handle keywords update if provided
+    if (validationResult.data.keywords !== undefined) {
+      updateData.collectionKeywords = {
+        deleteMany: {}, // Delete existing keywords
+        create: validationResult.data.keywords.map((keywordText) => ({
+          // Recreate with new
+          keyword: {
+            connectOrCreate: {
+              where: { text: keywordText },
+              create: { text: keywordText },
+            },
+          },
+        })),
+      };
+    }
+    // Handle video update if provided
+    if (validationResult.data.videos !== undefined) {
+      updateData.collectionVideos = {
+        deleteMany: {},
+        create: validationResult.data.videos.map((video) => ({
+          video: {
+            connectOrCreate: {
+              where: { id: video.id },
+              create: {
+                id: video.id,
+                title: video.title,
+                url: video.url,
+                thumbnailUrl: video.thumbnailUrl,
+                description: video.description,
+                channelId: collectionId, //ChannelId is needed.
+              },
+            },
+          },
+        })),
+      };
+    }
+    const collection = await prisma.collection.update({
+      where: { id: validationResult.data.collectionId },
+      data: updateData, // Dynamic data
+      include: {
+        channel: true,
+        collectionKeywords: { include: { keyword: true } },
+        collectionVideos: { include: { video: true } },
+      },
+    });
+    return { success: true, data: collection };
+  } catch (error) {
+    console.error("Error updating collection:", error);
+    let message = "Failed to update collection.";
+    if (error instanceof Error) {
+      message = error.message;
+    }
+    return { success: false, errors: [{ field: "general", message }] };
+  }
+}
+
+export async function deleteCollectionService(
+  collectionId: string
+): Promise<Result<CollectionWithRelations>> {
+  const validationResult = deleteCollectionSchema.safeParse({ collectionId });
+
+  if (!validationResult.success) {
+    return {
+      success: false,
+      errors: mapZodErrors(validationResult.error.errors),
+    };
+  }
+  try {
+    const collection = await prisma.collection.delete({
+      where: { id: validationResult.data.collectionId },
+      include: {
+        // Include for consistency, even though it's being deleted
+        channel: true,
+        collectionKeywords: { include: { keyword: true } },
+        collectionVideos: { include: { video: true } },
+      },
+    });
+
+    return { success: true, data: collection };
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+    let message = "Failed to delete collection";
     if (error instanceof Error) {
       message = error.message;
     }

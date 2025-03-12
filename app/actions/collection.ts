@@ -1,3 +1,4 @@
+// app/actions/collection.ts
 "use server";
 
 import {
@@ -6,25 +7,29 @@ import {
   updateCollectionService,
 } from "@/services/collectionService";
 import { Result } from "@/types/shared";
-import { Collection } from "@prisma/client";
+import type { CollectionWithRelations } from "@/services/collectionService";
+import { z } from "zod";
+import { videoSchema } from "@/utils/zodSchemas";
 
 export async function createCollectionAction(
-  prevState: Result<Collection>,
+  prevState: Result<CollectionWithRelations>,
   formData: FormData
-): Promise<Result<Collection>> {
+): Promise<Result<CollectionWithRelations>> {
+  // Basic presence checks (optional, but recommended)
+
   const collectionName = formData.get("collectionName")?.toString();
   const userId = formData.get("userId")?.toString();
   const channelHandle = formData.get("channelHandle")?.toString();
-  const keywords = formData.get("keywords")?.toString();
-  const videos = formData.get("videos")?.toString();
+  const keywordsString = formData.get("keywords")?.toString();
+  const videosString = formData.get("videos")?.toString();
   const channelAvatarUrl = formData.get("channelAvatarUrl")?.toString();
 
   if (
-    !collectionName ||
     !userId ||
+    !collectionName ||
     !channelHandle ||
-    !keywords ||
-    !videos ||
+    !keywordsString ||
+    !videosString ||
     !channelAvatarUrl
   ) {
     return {
@@ -32,40 +37,124 @@ export async function createCollectionAction(
       errors: [{ field: "general", message: "Missing required fields." }],
     };
   }
-
-  return createCollectionService(
-    collectionName,
-    userId,
-    channelHandle,
-    keywords,
-    videos,
-    channelAvatarUrl
-  );
-}
-
-export async function updateCollectionAction(
-  prevState: Result<Collection>,
-  formData: FormData
-): Promise<Result<Collection>> {
-  const collectionName = formData.get("collectionName")?.toString();
-  const collectionId = formData.get("collectionId")?.toString();
-
-  if (!collectionName || !collectionId) {
+  // Parse keywords and videos (assuming they are JSON strings)
+  let keywords: string[] = [];
+  try {
+    keywords = JSON.parse(keywordsString);
+    if (!Array.isArray(keywords)) {
+      throw new Error("Keywords must be an array");
+    }
+  } catch (_) {
+    // Use _ to ignore the error object
     return {
       success: false,
       errors: [
-        { field: "general", message: "Collection name and ID are required." },
+        {
+          field: "keywords",
+          message: "Invalid keywords format. Must be a JSON array of strings.",
+        },
       ],
     };
   }
 
-  return updateCollectionService(collectionName, collectionId);
+  let videos: z.infer<typeof videoSchema>[] = []; // Use the videoSchema
+  try {
+    videos = JSON.parse(videosString);
+    if (!Array.isArray(videos)) {
+      throw new Error("Videos must be an array");
+    }
+  } catch (_) {
+    // Use _ to ignore the error object
+    return {
+      success: false,
+      errors: [
+        {
+          field: "videos",
+          message: "Invalid videos format.  Must be a JSON array.",
+        },
+      ],
+    };
+  }
+  return createCollectionService(
+    userId,
+    collectionName,
+    channelHandle,
+    channelAvatarUrl,
+    keywords,
+    videos
+  ); // Delegate to the service function
 }
 
-export async function deleteCollectionAction(
-  prevState: Result<Collection>,
+export async function updateCollectionAction(
+  prevState: Result<CollectionWithRelations>,
   formData: FormData
-): Promise<Result<Collection>> {
+): Promise<Result<CollectionWithRelations>> {
+  const collectionName = formData.get("collectionName")?.toString();
+  const collectionId = formData.get("collectionId")?.toString();
+  const keywordsString = formData.get("keywords")?.toString();
+  const videosString = formData.get("videos")?.toString();
+  if (!collectionId) {
+    return {
+      success: false,
+      errors: [{ field: "general", message: "Collection ID is required." }],
+    };
+  }
+  // Parse keywords and videos (assuming they are JSON strings)
+  let keywords: string[] | undefined;
+  if (keywordsString) {
+    try {
+      keywords = JSON.parse(keywordsString);
+      if (!Array.isArray(keywords)) {
+        throw new Error("Keywords must be an array");
+      }
+    } catch (_) {
+      // Use _ to ignore the error
+      return {
+        success: false,
+        errors: [
+          {
+            field: "keywords",
+            message:
+              "Invalid keywords format. Must be a JSON array of strings.",
+          },
+        ],
+      };
+    }
+  }
+
+  let videos: z.infer<typeof videoSchema>[] | undefined;
+  if (videosString) {
+    try {
+      videos = JSON.parse(videosString);
+      if (!Array.isArray(videos)) {
+        throw new Error("Videos must be an array");
+      }
+    } catch (_) {
+      // Use _ to ignore the error
+      return {
+        success: false,
+        errors: [
+          {
+            field: "videos",
+            message: "Invalid videos format.  Must be a JSON array.",
+          },
+        ],
+      };
+    }
+  }
+  return updateCollectionService(
+    collectionId,
+    collectionName,
+    keywords,
+    videos
+  );
+}
+
+export async function doDeleteCollectionAction(
+  prevState: Result<CollectionWithRelations>, // Correct type
+  formData: FormData
+): Promise<Result<CollectionWithRelations>> {
+  // Correct type
   const collectionId = formData.get("collectionId")?.toString();
 
   if (!collectionId) {
@@ -75,5 +164,5 @@ export async function deleteCollectionAction(
     };
   }
 
-  return await deleteCollectionService(collectionId);
+  return deleteCollectionService(collectionId); // Await the result
 }
