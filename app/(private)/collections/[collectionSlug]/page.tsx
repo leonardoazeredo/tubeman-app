@@ -1,7 +1,9 @@
 import PrivatePage from "@/app/ui/pages/private-page";
-import { getCollectionBySlug } from "@/services/collectionService";
+import {
+  CollectionWithRelations,
+  getCollectionBySlug,
+} from "@/services/collectionService";
 import { VideoList } from "@/app/ui/videos/videos-list";
-import { Collection } from "@/prisma/generated/zod";
 
 interface CollectionDetailPage {
   params: Promise<{ collectionSlug: string }>;
@@ -12,7 +14,7 @@ export default async function CollectionDetailPage({
 }: CollectionDetailPage) {
   const collectionSlug = (await params).collectionSlug;
 
-  let collection: Collection | null = null;
+  let collection: CollectionWithRelations | null = null;
   let error: string | null = null;
 
   try {
@@ -43,12 +45,11 @@ export default async function CollectionDetailPage({
       <div>
         <h1>{collection.name}</h1>
         <p>Channel ID: {collection.channelId}</p>
-        <p>Keywords: {collection.keywords.join(", ")}</p>
+        <p>Keywords: {collection.collectionKeywords.join(", ")}</p>
         <VideoList
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          videos={collection.videos as any}
+          videos={collection.collectionVideos.map((video) => video.video)}
           channelHandle={collection.channelId}
-          channelAvatarUrl={collection.channelAvatarUrl ?? ""}
+          channelAvatarUrl={collection.channel.channelAvatarUrl ?? ""}
         />
       </div>
     </PrivatePage>

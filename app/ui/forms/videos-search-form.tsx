@@ -6,13 +6,13 @@ import { useActionState, useEffect, useState } from "react";
 import { VideoList } from "../videos/videos-list";
 import { FormInput } from "../shared/input";
 import { CreateCollectionForm } from "../collections/create-collections-form";
-import { getVideosData } from "@/services/youtubeService";
+import { getVideosDataAction } from "@/app/actions/video";
 
 export default function VideosSearchForm() {
   const [state, dispatch, pending] = useActionState<
     Result<{ videos: Video[]; channelAvatarUrl: string }>,
     FormData
-  >(getVideosData, { success: false, errors: [] });
+  >(getVideosDataAction, { success: false, errors: [] });
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
   );

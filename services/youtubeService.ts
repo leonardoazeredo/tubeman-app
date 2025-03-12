@@ -15,11 +15,11 @@ export async function getChannelId(
   try {
     const response = await youtube.channels.list({
       part: ["id"],
-      forUsername: channelHandle.replace(/^@/, ""), // Remove @ if present
+      forUsername: channelHandle.replace(/^@/, ""),
     });
 
     if (response.data.items && response.data.items.length > 0) {
-      return response.data.items[0].id || null; // Return the channel ID
+      return response.data.items[0].id || null;
     }
     return null; // Channel not found
   } catch (error) {
@@ -45,32 +45,17 @@ async function getChannelDataFromHandle(
         response.data.items[0].snippet?.thumbnails?.high?.url ?? "";
     }
     return { channelId, channelAvatarUrl };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching channel ID from handle:", error);
     return { channelId, channelAvatarUrl };
   }
 }
 
 export async function getVideosDataService(
-  formData: FormData
+  channelHandle: string,
+  keywords: string
 ): Promise<Result<{ videos: Video[]; channelAvatarUrl: string }>> {
   try {
-    const channelHandle = formData.get("channelHandle")?.toString();
-    const keywords = formData.get("keywords")?.toString();
-
-    if (!channelHandle || !keywords) {
-      return {
-        success: false,
-        errors: [
-          {
-            field: "general",
-            message: "Channel handle and keywords are required.",
-          },
-        ],
-      };
-    }
-
     const parsed = scrapeSearchParamsSchema.safeParse({
       channelHandle,
       keywords,
@@ -108,7 +93,7 @@ export async function getVideosDataService(
       channelId: channelId,
       q: validKeywords,
       type: ["video"],
-      maxResults: 10, // Consider making this configurable
+      maxResults: 10,
     });
 
     if (!response.data.items) {
@@ -135,7 +120,7 @@ export async function getVideosDataService(
             snippet.thumbnails?.default?.url ||
             "",
           url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-        } as Video; // Casting as Video is fine here.
+        } as Video;
       })
       .filter(Boolean) as Video[];
 

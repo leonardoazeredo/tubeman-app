@@ -11,13 +11,32 @@ import {
   deleteCollectionSchema,
   updateCollectionSchema,
 } from "@/utils/zodSchemas";
+import { Prisma } from "@prisma/client";
+import { getChannelId } from "./youtubeService";
+
+export type CollectionWithRelations = Prisma.CollectionGetPayload<{
+  include: {
+    channel: true;
+    collectionKeywords: { include: { keyword: true } };
+    collectionVideos: { include: { video: true } };
+  };
+}>;
 
 export async function getCollectionById(
   collectionId: string
-): Promise<Result<Collection>> {
+): Promise<Result<CollectionWithRelations>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { id: collectionId },
+      include: {
+        channel: true,
+        collectionKeywords: {
+          include: { keyword: true },
+        },
+        collectionVideos: {
+          include: { video: true },
+        },
+      },
     });
 
     return { success: true, data: collection };
@@ -34,11 +53,12 @@ export async function getCollectionById(
 }
 export async function getCollectionBySlug(
   collectionSlug: string
-): Promise<Result<Collection>> {
+): Promise<Result<CollectionWithRelations>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { slug: collectionSlug },
       include: {
+        channel: true,
         collectionKeywords: {
           include: { keyword: true },
         },
@@ -62,10 +82,19 @@ export async function getCollectionBySlug(
 }
 export async function getCollectionByUserId(
   userId: string
-): Promise<Result<Collection>> {
+): Promise<Result<CollectionWithRelations>> {
   try {
     const collection = await prisma.collection.findFirstOrThrow({
       where: { userId: userId },
+      include: {
+        channel: true,
+        collectionKeywords: {
+          include: { keyword: true },
+        },
+        collectionVideos: {
+          include: { video: true },
+        },
+      },
     });
 
     return { success: true, data: collection };
@@ -82,10 +111,19 @@ export async function getCollectionByUserId(
 }
 export async function getCollectionsByUserId(
   userId: string
-): Promise<Result<Collection[]>> {
+): Promise<Result<CollectionWithRelations[]>> {
   try {
     const collections = await prisma.collection.findMany({
       where: { userId: userId },
+      include: {
+        channel: true,
+        collectionKeywords: {
+          include: { keyword: true },
+        },
+        collectionVideos: {
+          include: { video: true },
+        },
+      },
     });
 
     return { success: true, data: collections };
@@ -189,6 +227,16 @@ export async function createCollectionService(
       videos: JSON.parse(videos || "[]"),
     });
 
+    const channelId = await getChannelId(channelHandle);
+    if (!channelId) {
+      return {
+        success: false,
+        errors: [
+          { field: "channelHandle", message: "YouTube channel not found." },
+        ],
+      };
+    }
+
     if (!validatedData.success) {
       return {
         success: false,
@@ -218,14 +266,14 @@ export async function createCollectionService(
 
     // Upsert the Channel
     await prisma.channel.upsert({
-      where: { channelId: validatedData.data.channelHandle },
+      where: { channelId: channelId },
       update: {
         channelAvatarUrl: validatedData.data.channelAvatarUrl,
         userId: user.id,
       },
       create: {
-        channelId: validatedData.data.channelHandle,
-        name: validatedData.data.channelHandle, // Using channelHandle as name
+        channelId: channelId,
+        name: validatedData.data.channelHandle,
         channelAvatarUrl: validatedData.data.channelAvatarUrl,
         userId: user.id,
       },
