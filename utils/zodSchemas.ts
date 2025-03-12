@@ -41,18 +41,16 @@ export const videoSchema = object({
   description: string(),
 });
 
-// channelHandle renamed to channelId and is now a string, since the helper function
-// getChannelDataFromHandle does the job of translating the handle to an id
 export const createCollectionSchema = object({
   userId: string().uuid("Invalid user ID format"),
   collectionName: string()
     .min(1, "Collection name is required")
     .max(255, "Collection name is too long"),
-  channelId: string().min(1, "Channel ID is required"), // Changed to channelId
+  channelId: string().min(1, "Channel ID is required"),
   keywords: array(
     string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
-  ), // Array of strings
-  videos: array(videoSchema), // Use the videoSchema
+  ),
+  videos: array(videoSchema),
   channelAvatarUrl: string().url("Invalid channel avatar URL format"),
 });
 
@@ -65,16 +63,11 @@ export const updateCollectionSchema = object({
   keywords: array(
     string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
   ).optional(),
-  videos: array(videoSchema).optional(), // Use the videoSchema
+  videos: array(videoSchema).optional(),
 });
 
 export const deleteCollectionSchema = object({
   collectionId: string().uuid("Invalid collection ID format"),
 });
 
-// --- TypeScript Types (Derived from Zod) ---
-// 2. Derive TypeScript types from the Zod schemas using z.infer.
 export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;
-
-// --- Prisma-Generated Types (for includes) ---
-// Type for query results that include relations.

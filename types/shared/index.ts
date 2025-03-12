@@ -25,7 +25,7 @@ export interface Video {
 export interface PrivatePageChildProps {
   userId?: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any; // Allow other props if needed
+  [key: string]: any;
 }
 
 export type PrivatePageChildren =

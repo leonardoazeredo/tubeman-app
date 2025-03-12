@@ -21,7 +21,7 @@ export async function getChannelId(
     if (response.data.items && response.data.items.length > 0) {
       return response.data.items[0].id || null;
     }
-    return null; // Channel not found
+    return null;
   } catch (error) {
     console.error("Error fetching channel ID:", error);
     return null;

@@ -41,8 +41,7 @@ export async function getCollectionById(
     });
 
     return { success: true, data: collection };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting collection:", error);
     return {
       success: false,
@@ -71,7 +70,7 @@ export async function getCollectionBySlug(
 
     return { success: true, data: collection };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting collection:", error);
     return {
       success: false,
@@ -100,7 +99,7 @@ export async function getCollectionByUserId(
 
     return { success: true, data: collection };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error getting collection:", error);
     return {
       success: false,
@@ -149,7 +148,6 @@ export async function createCollectionService(
   videos: z.infer<typeof videoSchema>[]
 ): Promise<Result<CollectionWithRelations>> {
   try {
-    // Get the *actual* channel ID from the YouTube API.
     const channelId = await getChannelId(channelHandle);
     if (!channelId) {
       return {
@@ -196,32 +194,28 @@ export async function createCollectionService(
       };
     }
 
-    // Upsert the Channel (using the correct channelId)
     const channel = await prisma.channel.upsert({
-      where: { channelId: validatedData.data.channelId }, // Use the CORRECT channelId
+      where: { channelId: validatedData.data.channelId },
       update: {
-        channelAvatarUrl: validatedData.data.channelAvatarUrl, // Update avatar URL
-        userId: user.id, // Ensure correct user association
+        channelAvatarUrl: validatedData.data.channelAvatarUrl,
+        userId: user.id,
         name: channelHandle,
       },
       create: {
-        channelId: validatedData.data.channelId, // Use the CORRECT channelId
-        name: channelHandle, // Use channel handle for consistency
+        channelId: validatedData.data.channelId,
+        name: channelHandle,
         channelAvatarUrl: validatedData.data.channelAvatarUrl,
         userId: user.id,
       },
     });
 
-    // Create the Collection (using the correct channelId)
     const newCollection = await prisma.collection.create({
       data: {
         userId: validatedData.data.userId,
         name: validatedData.data.collectionName,
-        channelId: validatedData.data.channelId, // Use the CORRECT channelId
+        channelId: validatedData.data.channelId,
         slug,
-        // channelAvatarUrl: validatedData.data.channelAvatarUrl, // Add missing field
         collectionKeywords: {
-          // Create CollectionKeyword entries.
           create: validatedData.data.keywords.map((keywordText) => ({
             keyword: {
               connectOrCreate: {
@@ -232,7 +226,6 @@ export async function createCollectionService(
           })),
         },
         collectionVideos: {
-          // Create CollectionVideo entries
           create: validatedData.data.videos.map((video) => ({
             video: {
               connectOrCreate: {
@@ -243,7 +236,7 @@ export async function createCollectionService(
                   url: video.url,
                   thumbnailUrl: video.thumbnailUrl,
                   description: video.description,
-                  channelId: validatedData.data.channelId, //CORRECT channelId
+                  channelId: validatedData.data.channelId,
                 },
               },
             },
@@ -270,9 +263,9 @@ export async function createCollectionService(
 
 export async function updateCollectionService(
   collectionId: string,
-  collectionName?: string, // Optional now
-  keywords?: string[], // Optional
-  videos?: z.infer<typeof videoSchema>[] // Optional
+  collectionName?: string,
+  keywords?: string[],
+  videos?: z.infer<typeof videoSchema>[]
 ): Promise<Result<CollectionWithRelations>> {
   const validationResult = updateCollectionSchema.safeParse({
     collectionId,
@@ -289,19 +282,16 @@ export async function updateCollectionService(
   }
 
   try {
-    // Create updateData object dynamically
     const updateData: Prisma.CollectionUpdateInput = {};
 
     if (validationResult.data.collectionName !== undefined) {
       updateData.name = validationResult.data.collectionName;
     }
 
-    // Handle keywords update if provided
     if (validationResult.data.keywords !== undefined) {
       updateData.collectionKeywords = {
-        deleteMany: {}, // Delete existing keywords
+        deleteMany: {},
         create: validationResult.data.keywords.map((keywordText) => ({
-          // Recreate with new
           keyword: {
             connectOrCreate: {
               where: { text: keywordText },
@@ -311,7 +301,7 @@ export async function updateCollectionService(
         })),
       };
     }
-    // Handle video update if provided
+
     if (validationResult.data.videos !== undefined) {
       updateData.collectionVideos = {
         deleteMany: {},
@@ -325,7 +315,7 @@ export async function updateCollectionService(
                 url: video.url,
                 thumbnailUrl: video.thumbnailUrl,
                 description: video.description,
-                channelId: collectionId, //ChannelId is needed.
+                channelId: collectionId,
               },
             },
           },
@@ -334,7 +324,7 @@ export async function updateCollectionService(
     }
     const collection = await prisma.collection.update({
       where: { id: validationResult.data.collectionId },
-      data: updateData, // Dynamic data
+      data: updateData,
       include: {
         channel: true,
         collectionKeywords: { include: { keyword: true } },
@@ -367,7 +357,6 @@ export async function deleteCollectionService(
     const collection = await prisma.collection.delete({
       where: { id: validationResult.data.collectionId },
       include: {
-        // Include for consistency, even though it's being deleted
         channel: true,
         collectionKeywords: { include: { keyword: true } },
         collectionVideos: { include: { video: true } },

@@ -1,4 +1,3 @@
-// app/actions/collection.ts
 "use server";
 
 import {
@@ -15,8 +14,6 @@ export async function createCollectionAction(
   prevState: Result<CollectionWithRelations>,
   formData: FormData
 ): Promise<Result<CollectionWithRelations>> {
-  // Basic presence checks (optional, but recommended)
-
   const collectionName = formData.get("collectionName")?.toString();
   const userId = formData.get("userId")?.toString();
   const channelHandle = formData.get("channelHandle")?.toString();
@@ -37,15 +34,15 @@ export async function createCollectionAction(
       errors: [{ field: "general", message: "Missing required fields." }],
     };
   }
-  // Parse keywords and videos (assuming they are JSON strings)
+
   let keywords: string[] = [];
   try {
     keywords = JSON.parse(keywordsString);
     if (!Array.isArray(keywords)) {
       throw new Error("Keywords must be an array");
     }
-  } catch (_) {
-    // Use _ to ignore the error object
+  } catch (_error) {
+    console.log(_error);
     return {
       success: false,
       errors: [
@@ -57,14 +54,14 @@ export async function createCollectionAction(
     };
   }
 
-  let videos: z.infer<typeof videoSchema>[] = []; // Use the videoSchema
+  let videos: z.infer<typeof videoSchema>[] = [];
   try {
     videos = JSON.parse(videosString);
     if (!Array.isArray(videos)) {
       throw new Error("Videos must be an array");
     }
-  } catch (_) {
-    // Use _ to ignore the error object
+  } catch (_error) {
+    console.log(_error);
     return {
       success: false,
       errors: [
@@ -82,7 +79,7 @@ export async function createCollectionAction(
     channelAvatarUrl,
     keywords,
     videos
-  ); // Delegate to the service function
+  );
 }
 
 export async function updateCollectionAction(
@@ -99,7 +96,6 @@ export async function updateCollectionAction(
       errors: [{ field: "general", message: "Collection ID is required." }],
     };
   }
-  // Parse keywords and videos (assuming they are JSON strings)
   let keywords: string[] | undefined;
   if (keywordsString) {
     try {
@@ -107,8 +103,8 @@ export async function updateCollectionAction(
       if (!Array.isArray(keywords)) {
         throw new Error("Keywords must be an array");
       }
-    } catch (_) {
-      // Use _ to ignore the error
+    } catch (_error) {
+      console.log(_error);
       return {
         success: false,
         errors: [
@@ -129,8 +125,8 @@ export async function updateCollectionAction(
       if (!Array.isArray(videos)) {
         throw new Error("Videos must be an array");
       }
-    } catch (_) {
-      // Use _ to ignore the error
+    } catch (_error) {
+      console.log(_error);
       return {
         success: false,
         errors: [
@@ -150,11 +146,10 @@ export async function updateCollectionAction(
   );
 }
 
-export async function doDeleteCollectionAction(
+export async function deleteCollectionAction(
   prevState: Result<CollectionWithRelations>, // Correct type
   formData: FormData
 ): Promise<Result<CollectionWithRelations>> {
-  // Correct type
   const collectionId = formData.get("collectionId")?.toString();
 
   if (!collectionId) {

@@ -1,4 +1,3 @@
-// collections-list.tsx (Conceptual - You'll need to adapt to your actual UI)
 "use client";
 
 import { useActionState, useEffect } from "react";
