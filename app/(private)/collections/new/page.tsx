@@ -3,12 +3,12 @@
 import { Result, ValidationError, Video } from "@/types/shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { VideoList } from "../videos/videos-list";
-import { FormInput } from "../shared/input";
-import { CreateCollectionForm } from "../collections/create-collections-form";
 import { getVideosDataAction } from "@/app/actions/video";
+import { FormInput } from "@/app/ui/shared/input";
+import { CreateCollectionForm } from "@/app/(private)/collections/new/create-collections-form";
+import { VideoList } from "@/app/ui/videos/videos-list";
 
-export default function VideosSearchForm() {
+export default function ScrapePage() {
   const [state, dispatch, pending] = useActionState<
     Result<{ videos: Video[]; channelAvatarUrl: string }>,
     FormData
@@ -69,6 +69,7 @@ export default function VideosSearchForm() {
 
   return (
     <>
+      <h1>Scrape YouTube Channel</h1>
       <form action={dispatch} onSubmit={handleSubmit}>
         <div>
           <FormInput

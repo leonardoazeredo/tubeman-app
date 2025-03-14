@@ -3,7 +3,7 @@ import { useActionState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { createCollectionAction } from "@/app/actions/collection";
 import { useRouter } from "next/navigation";
-import { FormInput } from "../shared/input";
+import { FormInput } from "../../../ui/shared/input";
 import { Video } from "@/types/shared";
 
 interface CreateCollectionFormProps {
