@@ -2,13 +2,14 @@
 
 import { useActionState, useEffect, useState, useCallback } from "react";
 import { Result } from "@/types/shared";
-import { FormInput } from "../shared/input";
+
 import {
   updateCollectionAction,
   doDeleteCollectionAction,
 } from "@/app/actions/collection";
 import { CollectionWithRelations } from "@/services/collectionService";
 import Link from "next/link";
+import { FormInput } from "@/app/ui/shared/input";
 
 interface CollectionsListProps {
   collections: CollectionWithRelations[];
@@ -19,6 +20,8 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
 }) => {
   const [collections, setCollections] =
     useState<CollectionWithRelations[]>(initialCollections);
+  const [updateError, setUpdateError] = useState<string | null>(null); // Add error state
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const [updateCollectionState, updateCollectionDispatch, updatePending] =
     useActionState(updateCollectionAction, {
@@ -36,8 +39,6 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
 
   const handleActionState = useCallback(
     (state: Result<CollectionWithRelations>) => {
-      console.log("handleActionState called with:", state); // Log the entire state
-
       if (state.success) {
         if (state.data?.id) {
           setCollections((prevCollections) => {
@@ -45,27 +46,29 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
               (c) => c.id === state.data.id
             );
             if (index > -1) {
-              //It exists, check if it's from delete or update.
               if (state === updateCollectionState) {
-                // Update: Replace the existing collection
                 const newCollections = [...prevCollections];
                 newCollections[index] = state.data;
                 return newCollections;
               } else {
-                //It is delete
                 return prevCollections.filter((c) => c.id !== state.data.id);
               }
             } else {
-              return prevCollections; //Should never happen.
+              return prevCollections;
             }
           });
         }
       } else if (state.errors) {
         console.error("Error in action:", state.errors);
-        // TODO: Display error message to the user
+
+        if (state === updateCollectionState) {
+          setUpdateError(state.errors[0]?.message || "Update failed");
+        } else if (state === deleteState) {
+          setDeleteError(state.errors[0]?.message || "Delete failed");
+        }
       }
     },
-    [updateCollectionState] // Add updateCollectionState as dependency.
+    [updateCollectionState, deleteState]
   );
 
   useEffect(() => {
@@ -79,6 +82,10 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
       handleActionState(deleteState);
     }
   }, [deleteState, handleActionState]);
+
+  useEffect(() => {
+    setCollections(initialCollections);
+  }, [initialCollections]);
 
   const isPending = updatePending || deletePending;
 
@@ -106,9 +113,10 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
               defaultValue={collection.id}
             />
 
-            <button type="submit" aria-busy={isPending}>
-              Update
+            <button type="submit" aria-busy={isPending} disabled={isPending}>
+              {updatePending ? "Updating..." : "Update"}
             </button>
+            {updateError && <p className="text-red-500">{updateError}</p>}
           </form>
           <form
             action={async () => {
@@ -117,9 +125,10 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
               await deleteDispatch(formData);
             }}
           >
-            <button type="submit" aria-busy={isPending}>
-              Delete
+            <button type="submit" aria-busy={isPending} disabled={isPending}>
+              {deletePending ? "Deleting..." : "Delete"}
             </button>
+            {deleteError && <p className="text-red-500">{deleteError}</p>}
           </form>
         </li>
       ))}
