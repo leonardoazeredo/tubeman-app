@@ -1,5 +1,4 @@
-import { Video } from "@/prisma/generated/zod";
-import { Result } from "@/types/shared";
+import { Result, Video } from "@/types/shared";
 import { mapZodErrors } from "@/utils/utilities";
 import { scrapeSearchParamsSchema } from "@/utils/zodSchemas";
 import { youtube_v3 } from "@googleapis/youtube";

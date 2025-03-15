@@ -5,13 +5,13 @@ import { Suspense } from "react";
 import { Metadata } from "next";
 
 interface CollectionDetailPageProps {
-  params: { collectionSlug: string };
+  params: Promise<{ collectionSlug: string }>;
 }
 
 export async function generateMetadata({
   params,
 }: CollectionDetailPageProps): Promise<Metadata> {
-  const { collectionSlug } = params;
+  const collectionSlug = (await params).collectionSlug;
   const collectionResult = await getCollectionBySlug(collectionSlug);
   if (collectionResult.success) {
     return {
@@ -26,7 +26,7 @@ export async function generateMetadata({
 export default async function CollectionDetailPage({
   params,
 }: CollectionDetailPageProps) {
-  const { collectionSlug } = params;
+  const collectionSlug = (await params).collectionSlug;
 
   return (
     <Suspense fallback={<CollectionDetailPageLoading />}>
@@ -58,23 +58,19 @@ async function CollectionDetailPageContent({
   }
 
   return (
-    <PrivatePage pageTitle={collection.name}>
-      <div>
-        <h1>{collection.name}</h1>
-        <p>Channel ID: {collection.channel.channelId}</p>
-        <p>
-          Keywords:{" "}
-          {collection.collectionKeywords
-            .map((ck) => ck.keyword.text)
-            .join(", ")}
-        </p>
-        <VideoList
-          videos={collection.collectionVideos.map((video) => video.video)}
-          channelHandle={collection.channel.channelId}
-          channelAvatarUrl={collection.channel.channelAvatarUrl ?? ""}
-        />
-      </div>
-    </PrivatePage>
+    <div>
+      <h1>Your Collection: {collection.name}</h1>
+      <p>Channel ID: {collection.channel.channelId}</p>
+      <p>
+        Keywords:{" "}
+        {collection.collectionKeywords.map((ck) => ck.keyword.text).join(", ")}
+      </p>
+      <VideoList
+        videos={collection.collectionVideos.map((video) => video.video)}
+        channelHandle={collection.channel.channelId}
+        channelAvatarUrl={collection.channel.channelAvatarUrl ?? ""}
+      />
+    </div>
   );
 }
 
@@ -82,7 +78,8 @@ function CollectionDetailPageLoading() {
   return (
     <PrivatePage pageTitle="Loading Collection">
       <div>
-        <p>Loading collection details...</p>
+        <h1>Your Collection</h1>
+        <p>Loading your collection details...</p>
       </div>
     </PrivatePage>
   );

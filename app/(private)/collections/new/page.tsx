@@ -2,13 +2,21 @@
 
 import { Result, ValidationError, Video } from "@/types/shared";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useActionState, useEffect, useState } from "react";
+import { Suspense, useActionState, useEffect, useState } from "react";
 import { getVideosDataAction } from "@/app/actions/video";
 import { FormInput } from "@/app/ui/shared/input";
 import { CreateCollectionForm } from "@/app/(private)/collections/new/create-collections-form";
 import { VideoList } from "@/app/ui/videos/videos-list";
 
-export default function ScrapePage() {
+export default function CreateNewCollectionPage() {
+  return (
+    <Suspense fallback={<CreateNewCollectionPageLoading />}>
+      <CreateNewCollectionPageContent />
+    </Suspense>
+  );
+}
+
+function CreateNewCollectionPageContent() {
   const [state, dispatch, pending] = useActionState<
     Result<{ videos: Video[]; channelAvatarUrl: string }>,
     FormData
@@ -69,7 +77,7 @@ export default function ScrapePage() {
 
   return (
     <>
-      <h1>Scrape YouTube Channel</h1>
+      <h1>Create New Collection</h1>
       <form action={dispatch} onSubmit={handleSubmit}>
         <div>
           <FormInput
@@ -152,5 +160,14 @@ export default function ScrapePage() {
         </>
       )}
     </>
+  );
+}
+
+function CreateNewCollectionPageLoading() {
+  return (
+    <div>
+      <h1>Create New Collection</h1>
+      <p>Loading collection creator...</p>
+    </div>
   );
 }
