@@ -1,4 +1,3 @@
-// app/actions/getVideosData.ts
 "use server";
 
 import { getVideosDataService } from "@/services/youtubeService";
