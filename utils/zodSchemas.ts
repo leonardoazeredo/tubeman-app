@@ -1,4 +1,4 @@
-import { object, string } from "zod";
+import { array, object, string, z } from "zod";
 
 export const signInSchema = object({
   email: string({ required_error: "Email is required!" }).email({
@@ -31,3 +31,44 @@ export const scrapeSearchParamsSchema = object({
     .trim()
     .transform((value: string) => value.replace(/[\s,.;|]+/g, " ").trim()),
 });
+
+// --- Zod Schemas ---
+export const videoSchema = object({
+  id: string(),
+  title: string(),
+  url: string(),
+  thumbnailUrl: string(),
+  description: string(),
+});
+
+export const createCollectionSchema = object({
+  userId: string().uuid("Invalid user ID format"),
+  collectionName: string()
+    .min(1, "Collection name is required")
+    .max(255, "Collection name is too long"),
+  channelHandle: string().min(1, "Channel handle is required"),
+  channelId: string().min(1, "Channel ID is required"),
+  keywords: array(
+    string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
+  ),
+  videos: array(videoSchema),
+  channelAvatarUrl: string().url("Invalid channel avatar URL format"),
+});
+
+export const updateCollectionSchema = object({
+  collectionId: string().uuid("Invalid collection ID format"),
+  collectionName: string()
+    .min(1, "Collection name is required")
+    .max(255, "Collection name is too long")
+    .optional(),
+  keywords: array(
+    string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
+  ).optional(),
+  videos: array(videoSchema).optional(),
+});
+
+export const deleteCollectionSchema = object({
+  collectionId: string().uuid("Invalid collection ID format"),
+});
+
+export type CreateCollectionInput = z.infer<typeof createCollectionSchema>;

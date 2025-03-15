@@ -1,6 +1,5 @@
-"use server";
-
-import { Result, Video } from "@/types/shared";
+import { Video } from "@/prisma/generated/zod";
+import { Result } from "@/types/shared";
 import { mapZodErrors } from "@/utils/utilities";
 import { scrapeSearchParamsSchema } from "@/utils/zodSchemas";
 import { youtube_v3 } from "@googleapis/youtube";
@@ -9,6 +8,30 @@ const youtube = new youtube_v3.Youtube({
   auth: process.env.YOUTUBE_API_KEY,
   apiVersion: "v3",
 });
+
+export async function getChannelId(
+  channelHandle: string
+): Promise<string | null> {
+  try {
+    const response = await youtube.search.list({
+      part: ["snippet"],
+      type: ["channel"],
+      q: channelHandle.replace(/^@/, ""),
+      maxResults: 1,
+    });
+    console.log(response);
+
+    if (response.data.items && response.data.items.length > 0) {
+      const channelId = response.data.items[0].snippet?.channelId;
+      return channelId || null;
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching channel ID:", error);
+    return null;
+  }
+}
 
 async function getChannelDataFromHandle(
   channelHandle: string
@@ -27,33 +50,17 @@ async function getChannelDataFromHandle(
         response.data.items[0].snippet?.thumbnails?.high?.url ?? "";
     }
     return { channelId, channelAvatarUrl };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  } catch (error: any) {
+  } catch (error) {
     console.error("Error fetching channel ID from handle:", error);
     return { channelId, channelAvatarUrl };
   }
 }
 
-export async function getVideosData(
-  _state: Result<{ videos: Video[]; channelAvatarUrl: string }>,
-  formData: FormData
+export async function getVideosDataService(
+  channelHandle: string,
+  keywords: string
 ): Promise<Result<{ videos: Video[]; channelAvatarUrl: string }>> {
   try {
-    const channelHandle = formData.get("channelHandle")?.toString();
-    const keywords = formData.get("keywords")?.toString();
-
-    if (!channelHandle || !keywords) {
-      return {
-        success: false,
-        errors: [
-          {
-            field: "general",
-            message: "Channel handle and keywords are required.",
-          },
-        ],
-      };
-    }
-
     const parsed = scrapeSearchParamsSchema.safeParse({
       channelHandle,
       keywords,
@@ -129,10 +136,9 @@ export async function getVideosData(
         channelAvatarUrl,
       },
     };
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.error("Caught exception in scrapeVideos (API):", error);
+    console.error("Caught exception in getVideosData (API):", error);
     let message =
       "An unexpected error occurred while fetching videos from YouTube API.";
 

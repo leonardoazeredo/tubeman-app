@@ -1,7 +1,7 @@
 import { fetchUserByEmail } from "@/services/userService";
 import { DbCollection, DbUser } from "@/types/db";
 import { ValidationError } from "@/types/shared";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs-react";
 import slugify from "slugify";
 import { ZodIssue, ZodObject } from "zod";
 import { prisma } from "./prisma";
@@ -61,22 +61,20 @@ export async function generateUniqueSlug(
   let slug = baseSlug;
 
   if (retryCount > 0) {
-    slug = `${baseSlug}-${retryCount}`; // Append retry count if not the first attempt
+    slug = `${baseSlug}-${retryCount}`;
   }
 
-  // Check if a collection with this slug already exists for the user
   const existingCollection: DbCollection | null =
     await prisma.collection.findFirst({
       where: {
         slug,
-        userId, // Scope uniqueness check to the user
+        userId,
       },
     });
 
   if (!existingCollection) {
-    return slug; // Slug is unique for this user
+    return slug;
   } else {
-    // Slug is not unique, retry with incremented retryCount
-    return generateUniqueSlug(collectionName, userId, userName, retryCount + 1); // Recursive call
+    return generateUniqueSlug(collectionName, userId, userName, retryCount + 1);
   }
 }

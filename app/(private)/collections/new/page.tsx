@@ -1,18 +1,18 @@
 "use client";
 
-import { getVideosData } from "@/app/actions/getVideosData";
 import { Result, ValidationError, Video } from "@/types/shared";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState, useEffect, useState } from "react";
-import { VideoList } from "../videos/videos-list";
-import { FormInput } from "../shared/input";
-import { CreateCollectionForm } from "../collections/create-collections-form";
+import { getVideosDataAction } from "@/app/actions/video";
+import { FormInput } from "@/app/ui/shared/input";
+import { CreateCollectionForm } from "@/app/(private)/collections/new/create-collections-form";
+import { VideoList } from "@/app/ui/videos/videos-list";
 
-export default function VideosSearchForm() {
+export default function ScrapePage() {
   const [state, dispatch, pending] = useActionState<
     Result<{ videos: Video[]; channelAvatarUrl: string }>,
     FormData
-  >(getVideosData, { success: false, errors: [] });
+  >(getVideosDataAction, { success: false, errors: [] });
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
   );
@@ -69,6 +69,7 @@ export default function VideosSearchForm() {
 
   return (
     <>
+      <h1>Scrape YouTube Channel</h1>
       <form action={dispatch} onSubmit={handleSubmit}>
         <div>
           <FormInput
@@ -112,10 +113,30 @@ export default function VideosSearchForm() {
           </div>
         )}
       </form>
-      {!hasSearched && <p>Submit the form to fetch videos.</p>}
-      {(!videos || !channelAvatarUrl) && <p>No videos found.</p>}
 
-      {videos && channelAvatarUrl && (
+      {pending && (
+        <div className="mt-4">
+          <p>Scraping...</p>
+        </div>
+      )}
+
+      {!state.success &&
+        formError &&
+        formError.map((error, index) => (
+          <p key={index} className="text-red-500">
+            {error.message}
+          </p>
+        ))}
+
+      {!pending && videos && videos.length === 0 && !formError && (
+        <p>No videos found matching your criteria.</p>
+      )}
+
+      {!hasSearched && !pending && <p>Submit the form to fetch videos.</p>}
+
+      {!videos || (!channelAvatarUrl && <p>No videos found.</p>)}
+
+      {!pending && videos && videos.length > 0 && channelAvatarUrl && (
         <>
           <CreateCollectionForm
             videos={videos}
