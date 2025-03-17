@@ -76,11 +76,9 @@ async function CollectionDetailPageContent({
 
 function CollectionDetailPageLoading() {
   return (
-    <PrivatePage pageTitle="Loading Collection">
-      <div>
-        <h1>Your Collection</h1>
-        <p>Loading your collection details...</p>
-      </div>
-    </PrivatePage>
+    <div>
+      <h1>Your Collection</h1>
+      <p>Loading your collection details...</p>
+    </div>
   );
 }

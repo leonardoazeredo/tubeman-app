@@ -9,17 +9,9 @@ import {
 import { DbUser } from "@/types/db";
 
 export const routes = [
-  // {
-  //   name: "Dashboard",
-  //   href: "/dashboard",
-  // },
   {
     name: "Collections",
     href: "/collections",
-  },
-  {
-    name: "Scraper",
-    href: "/scraper",
   },
 ];
 
