@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useActionState, useEffect, useRef } from "react";
-import { checkForUpdatesAction } from "@/app/actions/collection";
+import { checkForUpdatesRSSAction } from "@/app/actions/collection";
 import { Result } from "@/types/shared";
 import { CollectionWithRelations } from "@/services/collectionService";
 import { ActionFeedback } from "@/app/(private)/collections/collections-list";
@@ -11,7 +11,7 @@ const initialResultState: Result<CollectionWithRelations> = {
   errors: [],
 };
 
-export const CheckForUpdatesButton = ({
+export const CheckForRSSUpdatesButton = ({
   collectionId,
   onCheckComplete,
 }: {
@@ -25,7 +25,7 @@ export const CheckForUpdatesButton = ({
   const feedbackTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [checkState, checkDispatch, isPending] = useActionState(
-    checkForUpdatesAction,
+    checkForUpdatesRSSAction,
     initialResultState
   );
 
@@ -37,7 +37,6 @@ export const CheckForUpdatesButton = ({
     ) {
       return;
     }
-
     if (feedbackTimeoutRef.current) {
       clearTimeout(feedbackTimeoutRef.current);
     }
@@ -48,19 +47,15 @@ export const CheckForUpdatesButton = ({
     let type: "success" | "error" = "success";
 
     if (checkState.success) {
-      message = "Check complete.";
+      message = "RSS Check complete.";
       type = "success";
     } else if (checkState.errors) {
-      message = checkState.errors[0]?.message || "Check failed.";
+      message = checkState.errors[0]?.message || "RSS Check failed.";
       type = "error";
-      console.error(
-        `Check for updates failed for ${collectionId}:`,
-        checkState.errors
-      );
+      console.error(`RSS Check failed for ${collectionId}:`, checkState.errors);
     }
 
     setFeedback({ message, type });
-
     feedbackTimeoutRef.current = setTimeout(() => {
       setFeedback(null);
     }, 5000);
@@ -79,11 +74,11 @@ export const CheckForUpdatesButton = ({
         type="submit"
         aria-busy={isPending}
         disabled={isPending}
-        className="px-3 py-1 border border-blue-500 text-blue-300 rounded hover:bg-blue-700 disabled:opacity-50"
+        title="Check for recent videos via RSS (fallback, less accurate)"
+        className="px-3 py-1 border border-orange-500 text-orange-300 rounded hover:bg-orange-700 disabled:opacity-50"
       >
-        {isPending ? "Checking..." : "Check for Updates"}
+        {isPending ? "Checking RSS..." : "Check via RSS"}
       </button>
-
       {feedback && (
         <ActionFeedback message={feedback.message} type={feedback.type} />
       )}

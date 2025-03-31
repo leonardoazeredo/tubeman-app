@@ -8,6 +8,7 @@ import Link from "next/link";
 import { UpdateCollectionName } from "@/app/ui/forms/update-collection-form";
 import { DeleteCollection } from "@/app/ui/forms/delete-collection-form";
 import { CheckForUpdatesButton } from "@/app/ui/forms/check-for-updates-form";
+import { CheckForRSSUpdatesButton } from "@/app/ui/forms/check-for-rss-updates-form";
 
 interface CollectionsListProps {
   collections: CollectionWithRelations[];
@@ -104,6 +105,11 @@ export const CollectionsList: React.FC<CollectionsListProps> = ({
               />
 
               <CheckForUpdatesButton
+                collectionId={collection.id}
+                onCheckComplete={handleUpdate}
+              />
+
+              <CheckForRSSUpdatesButton
                 collectionId={collection.id}
                 onCheckComplete={handleUpdate}
               />

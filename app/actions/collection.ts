@@ -5,6 +5,7 @@ import {
   deleteCollectionService,
   updateCollectionService,
   updateSingleCollectionVideos,
+  updateSingleCollectionVideosFromRSS,
 } from "@/services/collectionService";
 import { Result } from "@/types/shared";
 import type { CollectionWithRelations } from "@/services/collectionService";
@@ -175,4 +176,22 @@ export async function checkForUpdatesAction(
   }
 
   return updateSingleCollectionVideos(collectionId);
+}
+
+export async function checkForUpdatesRSSAction(
+  prevState: Result<CollectionWithRelations>,
+  formData: FormData
+): Promise<Result<CollectionWithRelations>> {
+  const collectionId = formData.get("collectionId")?.toString();
+
+  if (!collectionId) {
+    return {
+      success: false,
+      errors: [{ field: "collectionId", message: "Collection ID is missing." }],
+    };
+  }
+
+  console.log(`RSS Check Action: Triggered for collection ${collectionId}`);
+
+  return updateSingleCollectionVideosFromRSS(collectionId);
 }

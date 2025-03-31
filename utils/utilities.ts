@@ -78,3 +78,31 @@ export async function generateUniqueSlug(
     return generateUniqueSlug(collectionName, userId, userName, retryCount + 1);
   }
 }
+
+/**
+ * Checks if a text contains at least one of the specified keywords (case-insensitive, whole word).
+ * Uses regular expressions with word boundaries to avoid partial matches.
+ *
+ * @param text - The text to search within (e.g., video title + description).
+ * @param keywordsArray - An array of keywords to look for.
+ * @returns True if at least one keyword is found, false otherwise.
+ */
+export function containsKeywords(
+  text: string,
+  keywordsArray: string[]
+): boolean {
+  if (!text || keywordsArray.length === 0) {
+    return false;
+  }
+  const lowerText = text.toLowerCase();
+
+  return keywordsArray.some((keyword) => {
+    if (!keyword) return false;
+
+    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+    const regex = new RegExp(`\\b${escapedKeyword.toLowerCase()}\\b`);
+
+    return regex.test(lowerText);
+  });
+}

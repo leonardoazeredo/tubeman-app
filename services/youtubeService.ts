@@ -3,43 +3,13 @@
 import { youtube_v3 } from "@googleapis/youtube";
 import { Result, Video, ValidationError } from "@/types/shared";
 import { scrapeSearchParamsSchema } from "@/utils/zodSchemas";
-import { mapZodErrors } from "@/utils/utilities";
+import { containsKeywords, mapZodErrors } from "@/utils/utilities";
 
 // Initialize the YouTube Data API v3 client
 const youtube = new youtube_v3.Youtube({
   auth: process.env.YOUTUBE_API_KEY,
   apiVersion: "v3",
 });
-
-// --- Helper Functions ---
-
-/**
- * Checks if a text contains at least one of the specified keywords (case-insensitive, whole word).
- * Uses regular expressions with word boundaries to avoid partial matches.
- *
- * @param text - The text to search within (e.g., video title + description).
- * @param keywordsArray - An array of keywords to look for.
- * @returns True if at least one keyword is found, false otherwise.
- */
-function containsKeywords(text: string, keywordsArray: string[]): boolean {
-  // 1. Handle edge cases: no text or no keywords means no match.
-  if (!text || keywordsArray.length === 0) {
-    return false;
-  }
-  const lowerText = text.toLowerCase(); // Convert text to lowercase for case-insensitive search.
-
-  // 2. Iterate through each keyword.
-  return keywordsArray.some((keyword) => {
-    // 2a. Skip empty keywords if they somehow exist in the array.
-    if (!keyword) return false;
-    // 2b. Escape any special regex characters within the keyword itself.
-    const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    // 2c. Create a regex to match the keyword as a whole word, case-insensitively (handled by lowercasing text).
-    const regex = new RegExp(`\\b${escapedKeyword.toLowerCase()}\\b`);
-    // 2d. Test if the regex matches the lowercase text.
-    return regex.test(lowerText);
-  }); // Return true if any keyword matches.
-}
 
 /**
  * Attempts to fetch Channel ID and high-resolution Avatar URL based on a channel handle (username).
@@ -53,21 +23,18 @@ async function getChannelDataFromHandle(
   channelHandle: string
 ): Promise<{ channelId: string | null; channelAvatarUrl: string | null }> {
   try {
-    // 1. Sanitize handle for API (remove leading '@').
     const handleForApi = channelHandle.replace(/^@/, "");
 
-    // 2. Attempt to find channel using the `forUsername` parameter.
     const response = await youtube.channels.list({
       part: ["id", "snippet"],
       forUsername: handleForApi,
       maxResults: 1,
     });
 
-    // 3. Process successful `forUsername` result.
     if (response.data.items && response.data.items.length > 0) {
       const item = response.data.items[0];
       const channelId = item.id ?? null;
-      // Extract best available thumbnail URL.
+
       const channelAvatarUrl =
         item.snippet?.thumbnails?.high?.url ??
         item.snippet?.thumbnails?.medium?.url ??
@@ -75,18 +42,16 @@ async function getChannelDataFromHandle(
         null;
       return { channelId, channelAvatarUrl };
     } else {
-      // 4. If `forUsername` fails, attempt fallback using general search.
       console.warn(
         `No channel found via forUsername for handle: ${channelHandle}`
       );
       const searchResponse = await youtube.search.list({
         part: ["snippet"],
-        q: channelHandle, // Use the handle as a search query.
-        type: ["channel"], // Limit search to channels.
+        q: channelHandle,
+        type: ["channel"],
         maxResults: 1,
       });
 
-      // 5. Process successful search fallback result.
       if (searchResponse.data.items && searchResponse.data.items.length > 0) {
         const searchItem = searchResponse.data.items[0];
         const channelId = searchItem.snippet?.channelId ?? null;
@@ -101,15 +66,14 @@ async function getChannelDataFromHandle(
         return { channelId, channelAvatarUrl };
       }
     }
-    // 6. If both methods fail, return nulls.
+
     return { channelId: null, channelAvatarUrl: null };
   } catch (error: unknown) {
-    // 7. Catch any API errors during the process.
     console.error(
       `Error fetching channel data for handle "${channelHandle}":`,
       error
     );
-    return { channelId: null, channelAvatarUrl: null }; // Return nulls on error.
+    return { channelId: null, channelAvatarUrl: null };
   }
 }
 
@@ -125,24 +89,20 @@ export async function getChannelId(
   channelHandle: string
 ): Promise<string | null> {
   try {
-    // 1. Search for a channel using the handle as a query.
     const response = await youtube.search.list({
       part: ["snippet"],
       type: ["channel"],
-      q: channelHandle.replace(/^@/, ""), // Sanitize handle.
+      q: channelHandle.replace(/^@/, ""),
       maxResults: 1,
     });
 
-    // 2. Extract channel ID from the first result if found.
     if (response.data.items && response.data.items.length > 0) {
       const channelId = response.data.items[0].snippet?.channelId;
       return channelId || null;
     } else {
-      // 3. Return null if no channel is found.
       return null;
     }
   } catch (error) {
-    // 4. Catch API errors.
     console.error(
       `Error fetching channel ID via search for "${channelHandle}":`,
       error
@@ -174,22 +134,19 @@ export async function fetchVideosPublishedAfter(
     }`
   );
 
-  // 1. Prepare keyword list for client-side filtering.
   const keywordsArray = keywords.split(" ").filter((k) => k.length > 0);
 
   try {
-    // 2. Call YouTube Search API.
     const response = await youtube.search.list({
       part: ["snippet"],
       channelId: channelId,
-      q: keywords, // API relevance search using keywords.
+      q: keywords,
       type: ["video"],
-      maxResults: 25, // Fetch a reasonable number for update checks.
-      order: "date", // Prioritize newer videos.
-      publishedAfter: publishedAfterISO, // API-level date filtering.
+      maxResults: 25,
+      order: "date",
+      publishedAfter: publishedAfterISO,
     });
 
-    // 3. Handle API returning no items successfully.
     if (!response.data.items || response.data.items.length === 0) {
       console.log(
         `YouTube Service: No new items found via API for channel ${channelId}.`
@@ -197,34 +154,31 @@ export async function fetchVideosPublishedAfter(
       return { success: true, data: [] };
     }
 
-    // 4. Map API results to the shared `Video` type.
     const mappedVideos = response.data.items.map((item): Video | null => {
       const videoId = item.id?.videoId;
       const snippet = item.snippet;
 
-      // 4a. Validate essential data points from the API response.
       if (!videoId || !snippet || !snippet.title || !snippet.publishedAt) {
         console.warn(
           "Skipping video item due to missing id, snippet, title, or publishedAt:",
           item.id
         );
-        return null; // Mark for filtering.
+        return null;
       }
-      // 4b. Validate and create Date object.
+
       const publishedDate = new Date(snippet.publishedAt);
       if (isNaN(publishedDate.getTime())) {
         console.warn(
           `Skipping video item due to invalid publishedAt date: ${snippet.publishedAt}`,
           item.id
         );
-        return null; // Mark for filtering.
+        return null;
       }
 
-      // 4c. Create the Video object conforming to the shared interface.
       return {
         id: videoId,
         title: snippet.title,
-        url: videoId, // Store YouTube ID in 'url' field.
+        url: videoId,
         description: snippet.description || "",
         thumbnailUrl:
           snippet.thumbnails?.high?.url ||
@@ -235,11 +189,9 @@ export async function fetchVideosPublishedAfter(
       };
     });
 
-    // 5. Perform client-side filtering:
     const videos: Video[] = mappedVideos.filter((video): video is Video => {
-      // 5a. Remove items marked as null during mapping.
       if (video === null) return false;
-      // 5b. Apply strict keyword filtering on title and description.
+
       return containsKeywords(
         `${video.title} ${video.description}`,
         keywordsArray
@@ -253,21 +205,18 @@ export async function fetchVideosPublishedAfter(
         videos.length
       } matching keywords [${keywordsArray.join(", ")}].`
     );
-    // 6. Return success result with the filtered videos.
+
     return { success: true, data: videos };
   } catch (error: unknown) {
-    // 7. Catch and handle potential errors.
     console.error(
       `Error fetching YouTube videos for channel ${channelId}:`,
       error
     );
 
-    let message = "Failed to fetch videos from YouTube API."; // Default error message.
+    let message = "Failed to fetch videos from YouTube API.";
 
-    // 7a. Attempt to extract a more specific error message using type narrowing.
     if (typeof error === "object" && error !== null) {
       if ("code" in error && typeof error.code === "number") {
-        // Google API error structure
         message = `YouTube API Error (Code: ${error.code})`;
         if (
           "errors" in error &&
@@ -287,15 +236,12 @@ export async function fetchVideosPublishedAfter(
           message = `${error.message} (Code: ${error.code})`;
         }
       } else if (error instanceof Error) {
-        // Standard JS Error
         message = error.message;
       }
     } else if (typeof error === "string") {
-      // Plain string error
       message = error;
     }
 
-    // 7b. Format and return the error result.
     const errors: ValidationError[] = [{ field: "youtubeApi", message }];
     return { success: false, errors };
   }
@@ -315,7 +261,6 @@ export async function getVideosDataService(
   keywords: string
 ): Promise<Result<{ videos: Video[]; channelAvatarUrl: string }>> {
   try {
-    // 1. Validate input parameters using Zod schema.
     const parsed = scrapeSearchParamsSchema.safeParse({
       channelHandle,
       keywords,
@@ -325,15 +270,12 @@ export async function getVideosDataService(
     }
     const { channelHandle: validHandle, keywords: validKeywords } = parsed.data;
 
-    // 2. Prepare keyword list for client-side filtering.
     const keywordsArray = validKeywords.split(" ").filter((k) => k.length > 0);
 
-    // 3. Get Channel ID and Avatar URL using the handle.
     const { channelId, channelAvatarUrl } = await getChannelDataFromHandle(
       validHandle
     );
 
-    // 4. Handle channel not found error.
     if (!channelId) {
       return {
         success: false,
@@ -342,24 +284,22 @@ export async function getVideosDataService(
         ],
       };
     }
-    // 5. Handle missing avatar URL (log warning but continue).
+
     if (!channelAvatarUrl) {
       console.warn(
         `Channel avatar URL not found for handle: ${validHandle}. Proceeding without it.`
       );
     }
 
-    // 6. Call YouTube Search API for initial video fetch.
     const response = await youtube.search.list({
       part: ["snippet"],
       channelId: channelId,
-      q: validKeywords, // API relevance search.
+      q: validKeywords,
       type: ["video"],
-      maxResults: 10, // Limit initial fetch count.
-      order: "date", // Consider 'relevance' depending on desired initial view.
+      maxResults: 10,
+      order: "date",
     });
 
-    // 7. Handle successful API call with no items found.
     if (!response.data.items || response.data.items.length === 0) {
       return {
         success: true,
@@ -367,12 +307,10 @@ export async function getVideosDataService(
       };
     }
 
-    // 8. Map API results to the shared `Video` type.
     const mappedVideos = response.data.items.map((item): Video | null => {
       const videoId = item.id?.videoId;
       const snippet = item.snippet;
 
-      // 8a. Validate essential data.
       if (!videoId || !snippet || !snippet.title || !snippet.publishedAt) {
         console.warn(
           "Skipping initial video item due to missing data:",
@@ -380,7 +318,7 @@ export async function getVideosDataService(
         );
         return null;
       }
-      // 8b. Validate and create Date object.
+
       const publishedDate = new Date(snippet.publishedAt);
       if (isNaN(publishedDate.getTime())) {
         console.warn(
@@ -390,11 +328,10 @@ export async function getVideosDataService(
         return null;
       }
 
-      // 8c. Create Video object.
       return {
         id: videoId,
         title: snippet.title,
-        url: videoId, // Store YouTube ID in 'url' field.
+        url: videoId,
         description: snippet.description || "",
         thumbnailUrl:
           snippet.thumbnails?.high?.url ||
@@ -405,7 +342,6 @@ export async function getVideosDataService(
       };
     });
 
-    // 9. Perform client-side filtering for nulls and keywords.
     const videoDetails: Video[] = mappedVideos.filter(
       (video): video is Video => {
         if (video === null) return false;
@@ -423,13 +359,12 @@ export async function getVideosDataService(
         videoDetails.length
       } matching keywords [${keywordsArray.join(", ")}].`
     );
-    // 10. Return success result with filtered videos and avatar URL.
+
     return {
       success: true,
       data: { videos: videoDetails, channelAvatarUrl: channelAvatarUrl || "" },
     };
   } catch (error: unknown) {
-    // 11. Catch and handle potential errors.
     console.error(
       `Error in getVideosDataService for handle "${channelHandle}":`,
       error
@@ -437,17 +372,15 @@ export async function getVideosDataService(
 
     let message =
       "An unexpected error occurred while fetching initial video data.";
-    // 11a. Extract specific error message using type narrowing.
+
     if (typeof error === "object" && error !== null) {
       if (error instanceof Error) {
         message = error.message;
       }
-      // Add more specific checks (e.g., Zod errors if they could slip through)
     } else if (typeof error === "string") {
       message = error;
     }
 
-    // 11b. Format and return error result.
     const errors: ValidationError[] = [{ field: "general", message }];
     return { success: false, errors };
   }

@@ -6,15 +6,15 @@ import React, { createContext, useContext, ReactNode } from "react";
 
 // 1. Define the Context Type
 interface SessionContextType {
-  session: Session | null; // Session object can be null if not authenticated
-  status: "authenticated" | "loading" | "unauthenticated"; // Status from useSession
+  session: Session | null;
+  status: "authenticated" | "loading" | "unauthenticated";
 }
 
 // 2. Create the Context with a default value (can be null or initial state)
 const SessionContext = createContext<SessionContextType>({
   session: null,
-  status: "loading", // Initial status is loading
-} as SessionContextType); // Explicit type assertion for default value
+  status: "loading",
+} as SessionContextType);
 
 interface SessionProviderProps {
   children: ReactNode;
@@ -22,11 +22,11 @@ interface SessionProviderProps {
 
 // 3. Create a SessionProvider Component
 export const SessionContextProvider = ({ children }: SessionProviderProps) => {
-  const sessionHook = useSession(); // Use useSession hook to get session data
+  const sessionHook = useSession();
 
   const sessionValue: SessionContextType = {
-    session: sessionHook.data, // Session data from useSession
-    status: sessionHook.status, // Session status from useSession
+    session: sessionHook.data,
+    status: sessionHook.status,
   };
 
   return (
