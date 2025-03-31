@@ -1,7 +1,7 @@
 import { fetchUserByEmail } from "@/services/userService";
 import { DbCollection, DbUser } from "@/types/db";
 import { ValidationError } from "@/types/shared";
-import * as bcrypt from "bcryptjs-react";
+import * as bcrypt from "bcryptjs";
 import slugify from "slugify";
 import { ZodIssue, ZodObject } from "zod";
 import { prisma } from "./prisma";
