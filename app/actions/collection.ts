@@ -1,10 +1,10 @@
-// app/actions/collection.ts
 "use server";
 
 import {
   createCollectionService,
   deleteCollectionService,
   updateCollectionService,
+  updateSingleCollectionVideos,
 } from "@/services/collectionService";
 import { Result } from "@/types/shared";
 import type { CollectionWithRelations } from "@/services/collectionService";
@@ -36,10 +36,9 @@ export async function createCollectionAction(
     };
   }
 
-  // Parse keywords and videos *here*, in the action.
   let keywords: string[] = [];
   try {
-    keywords = JSON.parse(keywordsString || "[]"); // Provide a default empty array if null/undefined
+    keywords = JSON.parse(keywordsString || "[]");
     if (!Array.isArray(keywords)) {
       throw new Error("Keywords must be an array");
     }
@@ -56,9 +55,9 @@ export async function createCollectionAction(
     };
   }
 
-  let videos: z.infer<typeof videoSchema>[] = []; // Correctly type 'videos'
+  let videos: z.infer<typeof videoSchema>[] = [];
   try {
-    videos = JSON.parse(videosString || "[]"); // Provide a default empty array
+    videos = JSON.parse(videosString || "[]");
     if (!Array.isArray(videos)) {
       throw new Error("Videos must be an array");
     }
@@ -75,7 +74,6 @@ export async function createCollectionAction(
     };
   }
 
-  // CORRECT - Pass individual parameters, NOT formData
   return createCollectionService(
     userId,
     collectionName,
@@ -100,7 +98,7 @@ export async function updateCollectionAction(
       errors: [{ field: "general", message: "Collection ID is required." }],
     };
   }
-  // Parse keywords and videos (assuming they are JSON strings)
+
   let keywords: string[] | undefined;
   if (keywordsString) {
     try {
@@ -131,9 +129,8 @@ export async function updateCollectionAction(
       if (!Array.isArray(videos)) {
         throw new Error("Videos must be an array");
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (_) {
-      // Use _ to ignore the error
+    } catch (error) {
+      console.log(error);
       return {
         success: false,
         errors: [
@@ -145,19 +142,13 @@ export async function updateCollectionAction(
       };
     }
   }
-  return updateCollectionService(
-    collectionId,
-    collectionName,
-    keywords,
-    videos
-  );
+  return updateCollectionService(collectionId, collectionName, keywords);
 }
 
 export async function doDeleteCollectionAction(
-  prevState: Result<CollectionWithRelations>, // Correct type
+  prevState: Result<CollectionWithRelations>,
   formData: FormData
 ): Promise<Result<CollectionWithRelations>> {
-  // Correct type
   const collectionId = formData.get("collectionId")?.toString();
 
   if (!collectionId) {
@@ -167,5 +158,21 @@ export async function doDeleteCollectionAction(
     };
   }
 
-  return deleteCollectionService(collectionId); // Await the result
+  return deleteCollectionService(collectionId);
+}
+
+export async function checkForUpdatesAction(
+  prevState: Result<CollectionWithRelations>,
+  formData: FormData
+): Promise<Result<CollectionWithRelations>> {
+  const collectionId = formData.get("collectionId")?.toString();
+
+  if (!collectionId) {
+    return {
+      success: false,
+      errors: [{ field: "collectionId", message: "Collection ID is missing." }],
+    };
+  }
+
+  return updateSingleCollectionVideos(collectionId);
 }
