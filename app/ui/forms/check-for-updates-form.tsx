@@ -4,7 +4,7 @@ import React, { useState, useActionState, useEffect, useRef } from "react";
 import { checkForUpdatesAction } from "@/app/actions/collection";
 import { Result } from "@/types/shared";
 import { CollectionWithRelations } from "@/services/collectionService";
-import { ActionFeedback } from "@/app/(private)/collections/collections-list";
+import { ActionFeedback } from "@/app/ui/shared/ActionFeedback";
 
 const initialResultState: Result<CollectionWithRelations> = {
   success: false,

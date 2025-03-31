@@ -5,7 +5,7 @@ import { useState, useActionState, useEffect, useRef } from "react";
 import { FormInput } from "../shared/input";
 import { Result } from "@/types/shared";
 import { CollectionWithRelations } from "@/services/collectionService";
-import { ActionFeedback } from "@/app/(private)/collections/collections-list";
+import { ActionFeedback } from "@/app/ui/shared/ActionFeedback";
 
 export const UpdateCollectionName = ({
   collection,
