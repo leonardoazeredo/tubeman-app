@@ -1,137 +1,110 @@
 "use client";
 
-import { useActionState, useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Result } from "@/types/shared";
 
-import {
-  updateCollectionAction,
-  doDeleteCollectionAction,
-} from "@/app/actions/collection";
 import { CollectionWithRelations } from "@/services/collectionService";
 import Link from "next/link";
-import { FormInput } from "@/app/ui/shared/input";
+import { UpdateCollectionName } from "@/app/ui/forms/update-collection-form";
+import { DeleteCollection } from "@/app/ui/forms/delete-collection-form";
 
 interface CollectionsListProps {
   collections: CollectionWithRelations[];
 }
+
+export const ActionFeedback: React.FC<{
+  message: string;
+  type: "success" | "error";
+}> = ({ message, type }) => {
+  const color = type === "success" ? "text-green-500" : "text-red-500";
+  return (
+    <p className={`text-sm ${color} ml-2 font-medium italic inline`}>
+      {message}
+    </p>
+  );
+};
 
 export const CollectionsList: React.FC<CollectionsListProps> = ({
   collections: initialCollections,
 }) => {
   const [collections, setCollections] =
     useState<CollectionWithRelations[]>(initialCollections);
-  const [updateError, setUpdateError] = useState<string | null>(null); // Add error state
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const [updateCollectionState, updateCollectionDispatch, updatePending] =
-    useActionState(updateCollectionAction, {
-      success: false,
-      errors: [],
-    });
+  const handleUpdate = useCallback((state: Result<CollectionWithRelations>) => {
+    if (state.success && state.data?.id) {
+      const updatedCollection = state.data;
 
-  const [deleteState, deleteDispatch, deletePending] = useActionState(
-    doDeleteCollectionAction,
-    {
-      success: false,
-      errors: [],
-    }
-  );
-
-  const handleActionState = useCallback(
-    (state: Result<CollectionWithRelations>) => {
-      if (state.success) {
-        if (state.data?.id) {
-          setCollections((prevCollections) => {
-            const index = prevCollections.findIndex(
-              (c) => c.id === state.data.id
-            );
-            if (index > -1) {
-              if (state === updateCollectionState) {
-                const newCollections = [...prevCollections];
-                newCollections[index] = state.data;
-                return newCollections;
-              } else {
-                return prevCollections.filter((c) => c.id !== state.data.id);
-              }
-            } else {
-              return prevCollections;
-            }
-          });
+      setCollections((prevCollections) => {
+        const exists = prevCollections.some(
+          (c) => c.id === updatedCollection.id
+        );
+        if (exists) {
+          console.log(`Parent updated collection ${updatedCollection.id}`);
+          return prevCollections.map((c) =>
+            c.id === updatedCollection.id ? updatedCollection : c
+          );
+        } else {
+          // This case might occur if data loads/changes between action start and finish
+          // Or if called inappropriately by delete. Log and return previous state.
+          console.warn(
+            `Received success state for collection not found in current list: ${updatedCollection.id}`
+          );
+          return prevCollections;
         }
-      } else if (state.errors) {
-        console.error("Error in action:", state.errors);
-
-        if (state === updateCollectionState) {
-          setUpdateError(state.errors[0]?.message || "Update failed");
-        } else if (state === deleteState) {
-          setDeleteError(state.errors[0]?.message || "Delete failed");
-        }
-      }
-    },
-    [updateCollectionState, deleteState]
-  );
-
-  useEffect(() => {
-    if (updateCollectionState && updateCollectionState.success) {
-      handleActionState(updateCollectionState);
+      });
+    } else if (!state.success && state.errors) {
+      console.error(
+        "An update action failed in a child component:",
+        state.errors
+      );
     }
-  }, [updateCollectionState, handleActionState]);
+  }, []);
 
-  useEffect(() => {
-    if (deleteState && deleteState.success) {
-      handleActionState(deleteState);
+  const handleDelete = useCallback((state: Result<CollectionWithRelations>) => {
+    if (state.success && state.data?.id) {
+      const deletedId = state.data.id;
+
+      setCollections((prev) => {
+        console.log(`Parent removing collection ${deletedId} from list.`);
+        return prev.filter((c) => c.id !== deletedId);
+      });
+    } else if (!state.success && state.errors) {
+      console.error("Delete action failed:", state.errors);
     }
-  }, [deleteState, handleActionState]);
+  }, []);
 
   useEffect(() => {
     setCollections(initialCollections);
   }, [initialCollections]);
 
-  const isPending = updatePending || deletePending;
-
   return (
-    <ul>
-      {collections.map((collection) => (
-        <li key={collection.id}>
-          <Link href={`/collections/${collection.slug}`}>
-            {collection.name} - {collection.channel.name}
-          </Link>
-          <form action={updateCollectionDispatch}>
-            <FormInput
-              type="text"
-              id={`collectionName-${collection.id}`}
-              name="collectionName"
-              defaultValue={collection.name}
-              placeholder={collection.name}
-              disabled={isPending}
-              className="bg-gray-800"
-            />
-            <FormInput
-              type="hidden"
-              id={`collectionId-${collection.id}`}
-              name="collectionId"
-              defaultValue={collection.id}
-            />
+    <ul className="space-y-4">
+      {collections.map((collection) => {
+        return (
+          <li key={collection.id} className="border p-4 rounded-md bg-gray-800">
+            <div className="flex justify-between items-center mb-2">
+              <Link
+                href={`/collections/${collection.slug}`}
+                className="text-xl font-semibold text-indigo-400 hover:underline"
+              >
+                {collection.name} - {collection.channel.name}
+              </Link>
+            </div>
 
-            <button type="submit" aria-busy={isPending} disabled={isPending}>
-              {updatePending ? "Updating..." : "Update"}
-            </button>
-            {updateError && <p className="text-red-500">{updateError}</p>}
-          </form>
-          <form
-            action={async () => {
-              const formData = new FormData();
-              formData.append("collectionId", collection.id);
-              await deleteDispatch(formData);
-            }}
-          >
-            <button type="submit" aria-busy={isPending} disabled={isPending}>
-              {deletePending ? "Deleting..." : "Delete"}
-            </button>
-            {deleteError && <p className="text-red-500">{deleteError}</p>}
-          </form>
-        </li>
-      ))}
+            <div className="flex flex-wrap gap-2 items-center mt-2">
+              <UpdateCollectionName
+                collection={collection}
+                onUpdateComplete={handleUpdate}
+              />
+
+              <DeleteCollection
+                collectionId={collection.id}
+                handleActionState={handleDelete}
+              />
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 };
