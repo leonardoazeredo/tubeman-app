@@ -8,13 +8,14 @@ import { ValidationError } from "@/types/shared";
 
 import useDebounce from "@/utils/customHooks";
 import { AuthInput } from "../shared/input";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function SignupForm() {
   const [signUpResult, dispatchSignUp, pending] = useActionState(doSignUp, {
     success: false,
     errors: [],
   });
+  const router = useRouter();
 
   const [formError, setFormError] = useState<ValidationError[] | undefined>(
     undefined
@@ -100,10 +101,10 @@ export default function SignupForm() {
       });
     } else if (signUpResult.success) {
       resetErrorFields();
-      redirect("/login");
       console.log("Signup successful!");
+      router.push("/login");
     }
-  }, [signUpResult]);
+  }, [signUpResult, router]);
 
   return (
     <form className="mt-8 space-y-6" action={handleSubmit}>

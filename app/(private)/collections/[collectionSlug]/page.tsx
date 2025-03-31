@@ -1,4 +1,3 @@
-import PrivatePage from "@/app/ui/pages/private-page";
 import { getCollectionBySlug } from "@/services/collectionService";
 import { VideoList } from "@/app/ui/videos/videos-list";
 import { Suspense } from "react";

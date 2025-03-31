@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
-import { auth } from "@/auth";
 import Navbar from "./ui/nav/navbar";
 
 export const metadata: Metadata = {
@@ -14,12 +13,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await auth();
   return (
     <html lang="en">
       <body className={`antialiased`}>
         <SessionProvider>
-          {session?.user && <Navbar />}
+          <Navbar />
           {children}
         </SessionProvider>
       </body>

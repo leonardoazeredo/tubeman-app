@@ -6,7 +6,6 @@ import { DbUser } from "@/types/db";
 import { Result, ValidationError } from "@/types/shared";
 import { signIn, signOut } from "@/auth";
 import { fetchUserByEmail, createUser } from "@/services/userService";
-import { redirect } from "next/navigation";
 
 export async function doSignUp(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -108,8 +107,7 @@ export async function doSignIn(
 
 export async function doSignOut() {
   try {
-    await signOut();
-    redirect("/");
+    await signOut({ redirect: true, redirectTo: "/" });
   } catch (error) {
     console.error("Sign out failed:", error);
   }

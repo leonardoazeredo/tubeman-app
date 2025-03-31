@@ -5,13 +5,16 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 
 import { doSignOut } from "@/app/actions/user";
+import { useSession } from "next-auth/react";
 
 export default function Navbar() {
   const pathname = usePathname();
-
+  const { status } = useSession();
   const [isPending, startTransition] = useTransition();
 
-  if (pathname === "/") {
+  const isAuthenticated = status === "authenticated";
+
+  if (pathname === "/" || !isAuthenticated) {
     return null;
   }
   return (
