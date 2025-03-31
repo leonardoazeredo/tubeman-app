@@ -4,8 +4,9 @@ import { signInSchema, signUpSchema } from "@/utils/zodSchemas";
 import { validatePassword, validateUser } from "@/utils/utilities";
 import { DbUser } from "@/types/db";
 import { Result, ValidationError } from "@/types/shared";
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 import { fetchUserByEmail, createUser } from "@/services/userService";
+import { redirect } from "next/navigation";
 
 export async function doSignUp(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -102,5 +103,14 @@ export async function doSignIn(
       message = error.message;
     }
     return { success: false, errors: [{ field: "general", message }] };
+  }
+}
+
+export async function doSignOut() {
+  try {
+    await signOut();
+    redirect("/");
+  } catch (error) {
+    console.error("Sign out failed:", error);
   }
 }

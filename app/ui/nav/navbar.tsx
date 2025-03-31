@@ -1,11 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { signOut } from "@/auth"; // Import the signOut function
+import { useTransition } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
+
+import { doSignOut } from "@/app/actions/user";
 
 export default function Navbar() {
   const pathname = usePathname();
+
+  const [isPending, startTransition] = useTransition();
 
   if (pathname === "/") {
     return null;
@@ -25,15 +29,18 @@ export default function Navbar() {
           </Link>
         </div>
         <form
-          action={async () => {
-            await signOut();
+          action={() => {
+            startTransition(async () => {
+              await doSignOut();
+            });
           }}
         >
           <button
             type="submit"
-            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+            disabled={isPending}
+            className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded disabled:opacity-70"
           >
-            Sign Out
+            {isPending ? "Signing Out..." : "Sign Out"}
           </button>
         </form>
       </div>
