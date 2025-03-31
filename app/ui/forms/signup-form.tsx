@@ -8,6 +8,7 @@ import { ValidationError } from "@/types/shared";
 
 import useDebounce from "@/utils/customHooks";
 import { AuthInput } from "../shared/input";
+import { redirect } from "next/navigation";
 
 export default function SignupForm() {
   const [signUpResult, dispatchSignUp, pending] = useActionState(doSignUp, {
@@ -99,6 +100,7 @@ export default function SignupForm() {
       });
     } else if (signUpResult.success) {
       resetErrorFields();
+      redirect("/login");
       console.log("Signup successful!");
     }
   }, [signUpResult]);
