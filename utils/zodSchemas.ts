@@ -39,6 +39,7 @@ export const videoSchema = object({
   url: string(),
   thumbnailUrl: string(),
   description: string(),
+  publishedAt: string(),
 });
 
 export const createCollectionSchema = object({
@@ -64,7 +65,6 @@ export const updateCollectionSchema = object({
   keywords: array(
     string().min(1, "Keyword cannot be empty").max(255, "Keyword is too long")
   ).optional(),
-  videos: array(videoSchema).optional(),
 });
 
 export const deleteCollectionSchema = object({

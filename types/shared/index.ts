@@ -19,7 +19,7 @@ export interface Video {
   url: string;
   thumbnailUrl: string;
   description: string;
-  published_at?: Date;
+  publishedAt: Date;
 }
 
 export interface PrivatePageChildProps {

@@ -14,7 +14,7 @@ export const TransactionIsolationLevelSchema = z.enum(['ReadUncommitted','ReadCo
 
 export const UserScalarFieldEnumSchema = z.enum(['id','email','password','userName','createdAt','updatedAt']);
 
-export const CollectionScalarFieldEnumSchema = z.enum(['id','name','slug','userId','channelId','createdAt','updatedAt']);
+export const CollectionScalarFieldEnumSchema = z.enum(['id','name','slug','userId','channelId','createdAt','updatedAt','newestVideoPublishedAt','lastCheckedAt']);
 
 export const ChannelScalarFieldEnumSchema = z.enum(['id','name','channelId','channelAvatarUrl','createdAt','updatedAt','userId']);
 
@@ -62,6 +62,8 @@ export const CollectionSchema = z.object({
   channelId: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  newestVideoPublishedAt: z.coerce.date().nullable(),
+  lastCheckedAt: z.coerce.date().nullable(),
 })
 
 export type Collection = z.infer<typeof CollectionSchema>
@@ -92,7 +94,7 @@ export const VideoSchema = z.object({
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().nullable(),
+  publishedAt: z.coerce.date(),
   channelId: z.string(),
 })
 
@@ -207,6 +209,8 @@ export const CollectionSelectSchema: z.ZodType<Prisma.CollectionSelect> = z.obje
   channelId: z.boolean().optional(),
   createdAt: z.boolean().optional(),
   updatedAt: z.boolean().optional(),
+  newestVideoPublishedAt: z.boolean().optional(),
+  lastCheckedAt: z.boolean().optional(),
   user: z.union([z.boolean(),z.lazy(() => UserArgsSchema)]).optional(),
   channel: z.union([z.boolean(),z.lazy(() => ChannelArgsSchema)]).optional(),
   collectionKeywords: z.union([z.boolean(),z.lazy(() => CollectionKeywordFindManyArgsSchema)]).optional(),
@@ -466,6 +470,8 @@ export const CollectionWhereInputSchema: z.ZodType<Prisma.CollectionWhereInput> 
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
   user: z.union([ z.lazy(() => UserScalarRelationFilterSchema),z.lazy(() => UserWhereInputSchema) ]).optional(),
   channel: z.union([ z.lazy(() => ChannelScalarRelationFilterSchema),z.lazy(() => ChannelWhereInputSchema) ]).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordListRelationFilterSchema).optional(),
@@ -480,6 +486,8 @@ export const CollectionOrderByWithRelationInputSchema: z.ZodType<Prisma.Collecti
   channelId: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  lastCheckedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
   user: z.lazy(() => UserOrderByWithRelationInputSchema).optional(),
   channel: z.lazy(() => ChannelOrderByWithRelationInputSchema).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordOrderByRelationAggregateInputSchema).optional(),
@@ -509,6 +517,8 @@ export const CollectionWhereUniqueInputSchema: z.ZodType<Prisma.CollectionWhereU
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
   user: z.union([ z.lazy(() => UserScalarRelationFilterSchema),z.lazy(() => UserWhereInputSchema) ]).optional(),
   channel: z.union([ z.lazy(() => ChannelScalarRelationFilterSchema),z.lazy(() => ChannelWhereInputSchema) ]).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordListRelationFilterSchema).optional(),
@@ -523,6 +533,8 @@ export const CollectionOrderByWithAggregationInputSchema: z.ZodType<Prisma.Colle
   channelId: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
   updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  lastCheckedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
   _count: z.lazy(() => CollectionCountOrderByAggregateInputSchema).optional(),
   _max: z.lazy(() => CollectionMaxOrderByAggregateInputSchema).optional(),
   _min: z.lazy(() => CollectionMinOrderByAggregateInputSchema).optional()
@@ -539,6 +551,8 @@ export const CollectionScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.Co
   channelId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
 }).strict();
 
 export const ChannelWhereInputSchema: z.ZodType<Prisma.ChannelWhereInput> = z.object({
@@ -633,7 +647,7 @@ export const VideoWhereInputSchema: z.ZodType<Prisma.VideoWhereInput> = z.object
   url: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   description: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   thumbnailUrl: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  publishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  publishedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   channel: z.union([ z.lazy(() => ChannelScalarRelationFilterSchema),z.lazy(() => ChannelWhereInputSchema) ]).optional(),
   collections: z.lazy(() => CollectionVideoListRelationFilterSchema).optional()
@@ -645,7 +659,7 @@ export const VideoOrderByWithRelationInputSchema: z.ZodType<Prisma.VideoOrderByW
   url: z.lazy(() => SortOrderSchema).optional(),
   description: z.lazy(() => SortOrderSchema).optional(),
   thumbnailUrl: z.lazy(() => SortOrderSchema).optional(),
-  publishedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  publishedAt: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional(),
   channel: z.lazy(() => ChannelOrderByWithRelationInputSchema).optional(),
   collections: z.lazy(() => CollectionVideoOrderByRelationAggregateInputSchema).optional()
@@ -672,7 +686,7 @@ export const VideoWhereUniqueInputSchema: z.ZodType<Prisma.VideoWhereUniqueInput
   title: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   description: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   thumbnailUrl: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  publishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  publishedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   channel: z.union([ z.lazy(() => ChannelScalarRelationFilterSchema),z.lazy(() => ChannelWhereInputSchema) ]).optional(),
   collections: z.lazy(() => CollectionVideoListRelationFilterSchema).optional()
@@ -684,7 +698,7 @@ export const VideoOrderByWithAggregationInputSchema: z.ZodType<Prisma.VideoOrder
   url: z.lazy(() => SortOrderSchema).optional(),
   description: z.lazy(() => SortOrderSchema).optional(),
   thumbnailUrl: z.lazy(() => SortOrderSchema).optional(),
-  publishedAt: z.union([ z.lazy(() => SortOrderSchema),z.lazy(() => SortOrderInputSchema) ]).optional(),
+  publishedAt: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional(),
   _count: z.lazy(() => VideoCountOrderByAggregateInputSchema).optional(),
   _max: z.lazy(() => VideoMaxOrderByAggregateInputSchema).optional(),
@@ -700,7 +714,7 @@ export const VideoScalarWhereWithAggregatesInputSchema: z.ZodType<Prisma.VideoSc
   url: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   description: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
   thumbnailUrl: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
-  publishedAt: z.union([ z.lazy(() => DateTimeNullableWithAggregatesFilterSchema),z.coerce.date() ]).optional().nullable(),
+  publishedAt: z.union([ z.lazy(() => DateTimeWithAggregatesFilterSchema),z.coerce.date() ]).optional(),
   channelId: z.union([ z.lazy(() => StringWithAggregatesFilterSchema),z.string() ]).optional(),
 }).strict();
 
@@ -947,6 +961,8 @@ export const CollectionCreateInputSchema: z.ZodType<Prisma.CollectionCreateInput
   slug: z.string().optional().nullable(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutCollectionsInputSchema),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutCollectionsInputSchema),
   collectionKeywords: z.lazy(() => CollectionKeywordCreateNestedManyWithoutCollectionInputSchema).optional(),
@@ -961,6 +977,8 @@ export const CollectionUncheckedCreateInputSchema: z.ZodType<Prisma.CollectionUn
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedCreateNestedManyWithoutCollectionInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutCollectionInputSchema).optional()
 }).strict();
@@ -971,6 +989,8 @@ export const CollectionUpdateInputSchema: z.ZodType<Prisma.CollectionUpdateInput
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordUpdateManyWithoutCollectionNestedInputSchema).optional(),
@@ -985,6 +1005,8 @@ export const CollectionUncheckedUpdateInputSchema: z.ZodType<Prisma.CollectionUn
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional()
 }).strict();
@@ -996,7 +1018,9 @@ export const CollectionCreateManyInputSchema: z.ZodType<Prisma.CollectionCreateM
   userId: z.string(),
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional()
+  updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable()
 }).strict();
 
 export const CollectionUpdateManyMutationInputSchema: z.ZodType<Prisma.CollectionUpdateManyMutationInput> = z.object({
@@ -1005,6 +1029,8 @@ export const CollectionUpdateManyMutationInputSchema: z.ZodType<Prisma.Collectio
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const CollectionUncheckedUpdateManyInputSchema: z.ZodType<Prisma.CollectionUncheckedUpdateManyInput> = z.object({
@@ -1015,6 +1041,8 @@ export const CollectionUncheckedUpdateManyInputSchema: z.ZodType<Prisma.Collecti
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const ChannelCreateInputSchema: z.ZodType<Prisma.ChannelCreateInput> = z.object({
@@ -1100,7 +1128,7 @@ export const VideoCreateInputSchema: z.ZodType<Prisma.VideoCreateInput> = z.obje
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutVideosInputSchema),
   collections: z.lazy(() => CollectionVideoCreateNestedManyWithoutVideoInputSchema).optional()
 }).strict();
@@ -1111,7 +1139,7 @@ export const VideoUncheckedCreateInputSchema: z.ZodType<Prisma.VideoUncheckedCre
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   channelId: z.string(),
   collections: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutVideoInputSchema).optional()
 }).strict();
@@ -1122,7 +1150,7 @@ export const VideoUpdateInputSchema: z.ZodType<Prisma.VideoUpdateInput> = z.obje
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutVideosNestedInputSchema).optional(),
   collections: z.lazy(() => CollectionVideoUpdateManyWithoutVideoNestedInputSchema).optional()
 }).strict();
@@ -1133,7 +1161,7 @@ export const VideoUncheckedUpdateInputSchema: z.ZodType<Prisma.VideoUncheckedUpd
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   collections: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutVideoNestedInputSchema).optional()
 }).strict();
@@ -1144,7 +1172,7 @@ export const VideoCreateManyInputSchema: z.ZodType<Prisma.VideoCreateManyInput> 
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   channelId: z.string()
 }).strict();
 
@@ -1154,7 +1182,7 @@ export const VideoUpdateManyMutationInputSchema: z.ZodType<Prisma.VideoUpdateMan
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const VideoUncheckedUpdateManyInputSchema: z.ZodType<Prisma.VideoUncheckedUpdateManyInput> = z.object({
@@ -1163,7 +1191,7 @@ export const VideoUncheckedUpdateManyInputSchema: z.ZodType<Prisma.VideoUnchecke
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
@@ -1470,6 +1498,17 @@ export const DateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeWithAg
   _max: z.lazy(() => NestedDateTimeFilterSchema).optional()
 }).strict();
 
+export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
 export const UserScalarRelationFilterSchema: z.ZodType<Prisma.UserScalarRelationFilter> = z.object({
   is: z.lazy(() => UserWhereInputSchema).optional(),
   isNot: z.lazy(() => UserWhereInputSchema).optional()
@@ -1507,7 +1546,9 @@ export const CollectionCountOrderByAggregateInputSchema: z.ZodType<Prisma.Collec
   userId: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
-  updatedAt: z.lazy(() => SortOrderSchema).optional()
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  newestVideoPublishedAt: z.lazy(() => SortOrderSchema).optional(),
+  lastCheckedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const CollectionMaxOrderByAggregateInputSchema: z.ZodType<Prisma.CollectionMaxOrderByAggregateInput> = z.object({
@@ -1517,7 +1558,9 @@ export const CollectionMaxOrderByAggregateInputSchema: z.ZodType<Prisma.Collecti
   userId: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
-  updatedAt: z.lazy(() => SortOrderSchema).optional()
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  newestVideoPublishedAt: z.lazy(() => SortOrderSchema).optional(),
+  lastCheckedAt: z.lazy(() => SortOrderSchema).optional()
 }).strict();
 
 export const CollectionMinOrderByAggregateInputSchema: z.ZodType<Prisma.CollectionMinOrderByAggregateInput> = z.object({
@@ -1527,7 +1570,23 @@ export const CollectionMinOrderByAggregateInputSchema: z.ZodType<Prisma.Collecti
   userId: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional(),
   createdAt: z.lazy(() => SortOrderSchema).optional(),
-  updatedAt: z.lazy(() => SortOrderSchema).optional()
+  updatedAt: z.lazy(() => SortOrderSchema).optional(),
+  newestVideoPublishedAt: z.lazy(() => SortOrderSchema).optional(),
+  lastCheckedAt: z.lazy(() => SortOrderSchema).optional()
+}).strict();
+
+export const DateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeNullableWithAggregatesFilter> = z.object({
+  equals: z.coerce.date().optional().nullable(),
+  in: z.coerce.date().array().optional().nullable(),
+  notIn: z.coerce.date().array().optional().nullable(),
+  lt: z.coerce.date().optional(),
+  lte: z.coerce.date().optional(),
+  gt: z.coerce.date().optional(),
+  gte: z.coerce.date().optional(),
+  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
 }).strict();
 
 export const UuidNullableFilterSchema: z.ZodType<Prisma.UuidNullableFilter> = z.object({
@@ -1602,17 +1661,6 @@ export const UuidNullableWithAggregatesFilterSchema: z.ZodType<Prisma.UuidNullab
   _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
 }).strict();
 
-export const DateTimeNullableFilterSchema: z.ZodType<Prisma.DateTimeNullableFilter> = z.object({
-  equals: z.coerce.date().optional().nullable(),
-  in: z.coerce.date().array().optional().nullable(),
-  notIn: z.coerce.date().array().optional().nullable(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
 export const VideoCountOrderByAggregateInputSchema: z.ZodType<Prisma.VideoCountOrderByAggregateInput> = z.object({
   id: z.lazy(() => SortOrderSchema).optional(),
   title: z.lazy(() => SortOrderSchema).optional(),
@@ -1641,20 +1689,6 @@ export const VideoMinOrderByAggregateInputSchema: z.ZodType<Prisma.VideoMinOrder
   thumbnailUrl: z.lazy(() => SortOrderSchema).optional(),
   publishedAt: z.lazy(() => SortOrderSchema).optional(),
   channelId: z.lazy(() => SortOrderSchema).optional()
-}).strict();
-
-export const DateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.DateTimeNullableWithAggregatesFilter> = z.object({
-  equals: z.coerce.date().optional().nullable(),
-  in: z.coerce.date().array().optional().nullable(),
-  notIn: z.coerce.date().array().optional().nullable(),
-  lt: z.coerce.date().optional(),
-  lte: z.coerce.date().optional(),
-  gt: z.coerce.date().optional(),
-  gte: z.coerce.date().optional(),
-  not: z.union([ z.coerce.date(),z.lazy(() => NestedDateTimeNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedDateTimeNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
 }).strict();
 
 export const CollectionScalarRelationFilterSchema: z.ZodType<Prisma.CollectionScalarRelationFilter> = z.object({
@@ -1875,6 +1909,10 @@ export const CollectionVideoUncheckedCreateNestedManyWithoutCollectionInputSchem
   connect: z.union([ z.lazy(() => CollectionVideoWhereUniqueInputSchema),z.lazy(() => CollectionVideoWhereUniqueInputSchema).array() ]).optional(),
 }).strict();
 
+export const NullableDateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableDateTimeFieldUpdateOperationsInput> = z.object({
+  set: z.coerce.date().optional().nullable()
+}).strict();
+
 export const UserUpdateOneRequiredWithoutCollectionsNestedInputSchema: z.ZodType<Prisma.UserUpdateOneRequiredWithoutCollectionsNestedInput> = z.object({
   create: z.union([ z.lazy(() => UserCreateWithoutCollectionsInputSchema),z.lazy(() => UserUncheckedCreateWithoutCollectionsInputSchema) ]).optional(),
   connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutCollectionsInputSchema).optional(),
@@ -2065,10 +2103,6 @@ export const CollectionVideoUncheckedCreateNestedManyWithoutVideoInputSchema: z.
   connectOrCreate: z.union([ z.lazy(() => CollectionVideoCreateOrConnectWithoutVideoInputSchema),z.lazy(() => CollectionVideoCreateOrConnectWithoutVideoInputSchema).array() ]).optional(),
   createMany: z.lazy(() => CollectionVideoCreateManyVideoInputEnvelopeSchema).optional(),
   connect: z.union([ z.lazy(() => CollectionVideoWhereUniqueInputSchema),z.lazy(() => CollectionVideoWhereUniqueInputSchema).array() ]).optional(),
-}).strict();
-
-export const NullableDateTimeFieldUpdateOperationsInputSchema: z.ZodType<Prisma.NullableDateTimeFieldUpdateOperationsInput> = z.object({
-  set: z.coerce.date().optional().nullable()
 }).strict();
 
 export const ChannelUpdateOneRequiredWithoutVideosNestedInputSchema: z.ZodType<Prisma.ChannelUpdateOneRequiredWithoutVideosNestedInput> = z.object({
@@ -2339,31 +2373,6 @@ export const NestedDateTimeWithAggregatesFilterSchema: z.ZodType<Prisma.NestedDa
   _max: z.lazy(() => NestedDateTimeFilterSchema).optional()
 }).strict();
 
-export const NestedUuidNullableFilterSchema: z.ZodType<Prisma.NestedUuidNullableFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedUuidNullableFilterSchema) ]).optional().nullable(),
-}).strict();
-
-export const NestedUuidNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedUuidNullableWithAggregatesFilter> = z.object({
-  equals: z.string().optional().nullable(),
-  in: z.string().array().optional().nullable(),
-  notIn: z.string().array().optional().nullable(),
-  lt: z.string().optional(),
-  lte: z.string().optional(),
-  gt: z.string().optional(),
-  gte: z.string().optional(),
-  not: z.union([ z.string(),z.lazy(() => NestedUuidNullableWithAggregatesFilterSchema) ]).optional().nullable(),
-  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
-  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
-  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
-}).strict();
-
 export const NestedDateTimeNullableFilterSchema: z.ZodType<Prisma.NestedDateTimeNullableFilter> = z.object({
   equals: z.coerce.date().optional().nullable(),
   in: z.coerce.date().array().optional().nullable(),
@@ -2389,12 +2398,39 @@ export const NestedDateTimeNullableWithAggregatesFilterSchema: z.ZodType<Prisma.
   _max: z.lazy(() => NestedDateTimeNullableFilterSchema).optional()
 }).strict();
 
+export const NestedUuidNullableFilterSchema: z.ZodType<Prisma.NestedUuidNullableFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedUuidNullableFilterSchema) ]).optional().nullable(),
+}).strict();
+
+export const NestedUuidNullableWithAggregatesFilterSchema: z.ZodType<Prisma.NestedUuidNullableWithAggregatesFilter> = z.object({
+  equals: z.string().optional().nullable(),
+  in: z.string().array().optional().nullable(),
+  notIn: z.string().array().optional().nullable(),
+  lt: z.string().optional(),
+  lte: z.string().optional(),
+  gt: z.string().optional(),
+  gte: z.string().optional(),
+  not: z.union([ z.string(),z.lazy(() => NestedUuidNullableWithAggregatesFilterSchema) ]).optional().nullable(),
+  _count: z.lazy(() => NestedIntNullableFilterSchema).optional(),
+  _min: z.lazy(() => NestedStringNullableFilterSchema).optional(),
+  _max: z.lazy(() => NestedStringNullableFilterSchema).optional()
+}).strict();
+
 export const CollectionCreateWithoutUserInputSchema: z.ZodType<Prisma.CollectionCreateWithoutUserInput> = z.object({
   id: z.string().uuid().optional(),
   name: z.string(),
   slug: z.string().optional().nullable(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutCollectionsInputSchema),
   collectionKeywords: z.lazy(() => CollectionKeywordCreateNestedManyWithoutCollectionInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoCreateNestedManyWithoutCollectionInputSchema).optional()
@@ -2407,6 +2443,8 @@ export const CollectionUncheckedCreateWithoutUserInputSchema: z.ZodType<Prisma.C
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedCreateNestedManyWithoutCollectionInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutCollectionInputSchema).optional()
 }).strict();
@@ -2480,6 +2518,8 @@ export const CollectionScalarWhereInputSchema: z.ZodType<Prisma.CollectionScalar
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   createdAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   updatedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
+  newestVideoPublishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
 }).strict();
 
 export const ChannelUpsertWithWhereUniqueWithoutUserInputSchema: z.ZodType<Prisma.ChannelUpsertWithWhereUniqueWithoutUserInput> = z.object({
@@ -2723,7 +2763,7 @@ export const VideoCreateWithoutChannelInputSchema: z.ZodType<Prisma.VideoCreateW
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   collections: z.lazy(() => CollectionVideoCreateNestedManyWithoutVideoInputSchema).optional()
 }).strict();
 
@@ -2733,7 +2773,7 @@ export const VideoUncheckedCreateWithoutChannelInputSchema: z.ZodType<Prisma.Vid
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   collections: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutVideoInputSchema).optional()
 }).strict();
 
@@ -2753,6 +2793,8 @@ export const CollectionCreateWithoutChannelInputSchema: z.ZodType<Prisma.Collect
   slug: z.string().optional().nullable(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutCollectionsInputSchema),
   collectionKeywords: z.lazy(() => CollectionKeywordCreateNestedManyWithoutCollectionInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoCreateNestedManyWithoutCollectionInputSchema).optional()
@@ -2765,6 +2807,8 @@ export const CollectionUncheckedCreateWithoutChannelInputSchema: z.ZodType<Prism
   userId: z.string(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedCreateNestedManyWithoutCollectionInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutCollectionInputSchema).optional()
 }).strict();
@@ -2829,7 +2873,7 @@ export const VideoScalarWhereInputSchema: z.ZodType<Prisma.VideoScalarWhereInput
   url: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   description: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
   thumbnailUrl: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
-  publishedAt: z.union([ z.lazy(() => DateTimeNullableFilterSchema),z.coerce.date() ]).optional().nullable(),
+  publishedAt: z.union([ z.lazy(() => DateTimeFilterSchema),z.coerce.date() ]).optional(),
   channelId: z.union([ z.lazy(() => StringFilterSchema),z.string() ]).optional(),
 }).strict();
 
@@ -2982,6 +3026,8 @@ export const CollectionCreateWithoutCollectionKeywordsInputSchema: z.ZodType<Pri
   slug: z.string().optional().nullable(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutCollectionsInputSchema),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutCollectionsInputSchema),
   collectionVideos: z.lazy(() => CollectionVideoCreateNestedManyWithoutCollectionInputSchema).optional()
@@ -2995,6 +3041,8 @@ export const CollectionUncheckedCreateWithoutCollectionKeywordsInputSchema: z.Zo
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedCreateNestedManyWithoutCollectionInputSchema).optional()
 }).strict();
 
@@ -3039,6 +3087,8 @@ export const CollectionUpdateWithoutCollectionKeywordsInputSchema: z.ZodType<Pri
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUpdateManyWithoutCollectionNestedInputSchema).optional()
@@ -3052,6 +3102,8 @@ export const CollectionUncheckedUpdateWithoutCollectionKeywordsInputSchema: z.Zo
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional()
 }).strict();
 
@@ -3086,6 +3138,8 @@ export const CollectionCreateWithoutCollectionVideosInputSchema: z.ZodType<Prism
   slug: z.string().optional().nullable(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   user: z.lazy(() => UserCreateNestedOneWithoutCollectionsInputSchema),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutCollectionsInputSchema),
   collectionKeywords: z.lazy(() => CollectionKeywordCreateNestedManyWithoutCollectionInputSchema).optional()
@@ -3099,6 +3153,8 @@ export const CollectionUncheckedCreateWithoutCollectionVideosInputSchema: z.ZodT
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
   updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedCreateNestedManyWithoutCollectionInputSchema).optional()
 }).strict();
 
@@ -3113,7 +3169,7 @@ export const VideoCreateWithoutCollectionsInputSchema: z.ZodType<Prisma.VideoCre
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   channel: z.lazy(() => ChannelCreateNestedOneWithoutVideosInputSchema)
 }).strict();
 
@@ -3123,7 +3179,7 @@ export const VideoUncheckedCreateWithoutCollectionsInputSchema: z.ZodType<Prisma
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable(),
+  publishedAt: z.coerce.date(),
   channelId: z.string()
 }).strict();
 
@@ -3149,6 +3205,8 @@ export const CollectionUpdateWithoutCollectionVideosInputSchema: z.ZodType<Prism
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordUpdateManyWithoutCollectionNestedInputSchema).optional()
@@ -3162,6 +3220,8 @@ export const CollectionUncheckedUpdateWithoutCollectionVideosInputSchema: z.ZodT
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional()
 }).strict();
 
@@ -3182,7 +3242,7 @@ export const VideoUpdateWithoutCollectionsInputSchema: z.ZodType<Prisma.VideoUpd
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutVideosNestedInputSchema).optional()
 }).strict();
 
@@ -3192,7 +3252,7 @@ export const VideoUncheckedUpdateWithoutCollectionsInputSchema: z.ZodType<Prisma
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
@@ -3238,7 +3298,9 @@ export const CollectionCreateManyUserInputSchema: z.ZodType<Prisma.CollectionCre
   slug: z.string().optional().nullable(),
   channelId: z.string(),
   createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional()
+  updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable()
 }).strict();
 
 export const ChannelCreateManyUserInputSchema: z.ZodType<Prisma.ChannelCreateManyUserInput> = z.object({
@@ -3256,6 +3318,8 @@ export const CollectionUpdateWithoutUserInputSchema: z.ZodType<Prisma.Collection
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   channel: z.lazy(() => ChannelUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordUpdateManyWithoutCollectionNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUpdateManyWithoutCollectionNestedInputSchema).optional()
@@ -3268,6 +3332,8 @@ export const CollectionUncheckedUpdateWithoutUserInputSchema: z.ZodType<Prisma.C
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional()
 }).strict();
@@ -3279,6 +3345,8 @@ export const CollectionUncheckedUpdateManyWithoutUserInputSchema: z.ZodType<Pris
   channelId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const ChannelUpdateWithoutUserInputSchema: z.ZodType<Prisma.ChannelUpdateWithoutUserInput> = z.object({
@@ -3358,7 +3426,7 @@ export const VideoCreateManyChannelInputSchema: z.ZodType<Prisma.VideoCreateMany
   url: z.string(),
   description: z.string(),
   thumbnailUrl: z.string(),
-  publishedAt: z.coerce.date().optional().nullable()
+  publishedAt: z.coerce.date()
 }).strict();
 
 export const CollectionCreateManyChannelInputSchema: z.ZodType<Prisma.CollectionCreateManyChannelInput> = z.object({
@@ -3367,7 +3435,9 @@ export const CollectionCreateManyChannelInputSchema: z.ZodType<Prisma.Collection
   slug: z.string().optional().nullable(),
   userId: z.string(),
   createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional()
+  updatedAt: z.coerce.date().optional(),
+  newestVideoPublishedAt: z.coerce.date().optional().nullable(),
+  lastCheckedAt: z.coerce.date().optional().nullable()
 }).strict();
 
 export const VideoUpdateWithoutChannelInputSchema: z.ZodType<Prisma.VideoUpdateWithoutChannelInput> = z.object({
@@ -3376,7 +3446,7 @@ export const VideoUpdateWithoutChannelInputSchema: z.ZodType<Prisma.VideoUpdateW
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   collections: z.lazy(() => CollectionVideoUpdateManyWithoutVideoNestedInputSchema).optional()
 }).strict();
 
@@ -3386,7 +3456,7 @@ export const VideoUncheckedUpdateWithoutChannelInputSchema: z.ZodType<Prisma.Vid
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   collections: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutVideoNestedInputSchema).optional()
 }).strict();
 
@@ -3396,7 +3466,7 @@ export const VideoUncheckedUpdateManyWithoutChannelInputSchema: z.ZodType<Prisma
   url: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   description: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   thumbnailUrl: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
-  publishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  publishedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
 }).strict();
 
 export const CollectionUpdateWithoutChannelInputSchema: z.ZodType<Prisma.CollectionUpdateWithoutChannelInput> = z.object({
@@ -3405,6 +3475,8 @@ export const CollectionUpdateWithoutChannelInputSchema: z.ZodType<Prisma.Collect
   slug: z.union([ z.string(),z.lazy(() => NullableStringFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   user: z.lazy(() => UserUpdateOneRequiredWithoutCollectionsNestedInputSchema).optional(),
   collectionKeywords: z.lazy(() => CollectionKeywordUpdateManyWithoutCollectionNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUpdateManyWithoutCollectionNestedInputSchema).optional()
@@ -3417,6 +3489,8 @@ export const CollectionUncheckedUpdateWithoutChannelInputSchema: z.ZodType<Prism
   userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
   collectionKeywords: z.lazy(() => CollectionKeywordUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional(),
   collectionVideos: z.lazy(() => CollectionVideoUncheckedUpdateManyWithoutCollectionNestedInputSchema).optional()
 }).strict();
@@ -3428,6 +3502,8 @@ export const CollectionUncheckedUpdateManyWithoutChannelInputSchema: z.ZodType<P
   userId: z.union([ z.string(),z.lazy(() => StringFieldUpdateOperationsInputSchema) ]).optional(),
   createdAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
   updatedAt: z.union([ z.coerce.date(),z.lazy(() => DateTimeFieldUpdateOperationsInputSchema) ]).optional(),
+  newestVideoPublishedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
+  lastCheckedAt: z.union([ z.coerce.date(),z.lazy(() => NullableDateTimeFieldUpdateOperationsInputSchema) ]).optional().nullable(),
 }).strict();
 
 export const CollectionVideoCreateManyVideoInputSchema: z.ZodType<Prisma.CollectionVideoCreateManyVideoInput> = z.object({
