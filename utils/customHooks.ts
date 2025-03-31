@@ -1,6 +1,5 @@
 import { useEffect, useCallback, useRef } from "react";
 
-// Define a type for the timeout ID that is compatible with clearTimeout
 type TimeoutId = number | ReturnType<typeof setTimeout>;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
