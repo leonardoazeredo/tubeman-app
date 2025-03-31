@@ -53,17 +53,19 @@ model User {
 // Many-to-many relationship with Keyword through CollectionKeyword
 // Many-to-many relationship with Video through CollectionVideo
 model Collection {
-  id                 String              @id @default(uuid()) @db.Uuid
-  name               String              @db.VarChar(255)
-  slug               String?             @unique @db.VarChar(255)
-  userId             String              @db.Uuid
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  channelId          String              @db.VarChar(255)
-  channel            Channel             @relation(fields: [channelId], references: [channelId], onDelete: Restrict)
-  collectionKeywords CollectionKeyword[]
-  collectionVideos   CollectionVideo[]
-  createdAt          DateTime            @default(now()) @db.Timestamptz(6)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(6)
+  id                     String              @id @default(uuid()) @db.Uuid
+  name                   String              @db.VarChar(255)
+  slug                   String?             @unique @db.VarChar(255)
+  userId                 String              @db.Uuid
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channelId              String              @db.VarChar(255)
+  channel                Channel             @relation(fields: [channelId], references: [channelId], onDelete: Restrict)
+  collectionKeywords     CollectionKeyword[]
+  collectionVideos       CollectionVideo[]
+  createdAt              DateTime            @default(now()) @db.Timestamptz(6)
+  updatedAt              DateTime            @updatedAt @db.Timestamptz(6)
+  newestVideoPublishedAt DateTime?           @db.Timestamptz(6)
+  lastCheckedAt          DateTime?           @db.Timestamptz(6)
 
   @@index([userId])
   @@index([channelId])
@@ -104,7 +106,7 @@ model Video {
   url          String            @unique @db.VarChar(1023)
   description  String            @db.VarChar(1023)
   thumbnailUrl String            @db.VarChar(1023)
-  publishedAt  DateTime?         @db.Timestamptz(6)
+  publishedAt  DateTime          @db.Timestamptz(6)
   channelId    String            @db.VarChar(255)
   channel      Channel           @relation(fields: [channelId], references: [channelId], onDelete: Cascade)
   collections  CollectionVideo[]
